@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horario de ocupación de aulas | EDECA</title>
+  <meta name="description" content="Horario de ocupación de aulas por jornada, día y aula. Periodo 202620." />
+  <style>
+    :root {
+      --una-blue: #003C71;
+      --una-blue-2: #0A5D9F;
+      --edeca-green: #007A53;
+      --edeca-green-soft: #E9F6EF;
+      --morning: #D9EAFB;
+      --morning-border: #8FBDEB;
+      --afternoon: #DDF4E8;
+      --afternoon-border: #8DD7B1;
+      --night: #EFE3FF;
+      --night-border: #C9A7F4;
+      --ink: #152238;
+      --muted: #5D6B7A;
+      --line: #D7E0EA;
+      --paper: #FFFFFF;
+      --page: #F3F7FA;
+      --shadow: 0 20px 55px rgba(21, 34, 56, .10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(0, 122, 83, .12), transparent 30rem),
+        linear-gradient(180deg, #F8FBFD 0%, var(--page) 100%);
+      min-height: 100vh;
+    }
+
+    .page { width: min(1240px, calc(100% - 32px)); margin: 0 auto; }
+
+    .hero {
+      padding: 34px 0 22px;
+      border-bottom: 1px solid rgba(0, 60, 113, .12);
+    }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-mark {
+      width: 54px; height: 54px; border-radius: 15px;
+      background: linear-gradient(135deg, var(--una-blue), var(--edeca-green));
+      display: grid; place-items: center; color: #fff; font-weight: 800; letter-spacing: .05em;
+      box-shadow: 0 10px 24px rgba(0, 60, 113, .18);
+    }
+    .brand-text span { display:block; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 700; }
+    .brand-text strong { display:block; font-size: clamp(22px, 4vw, 36px); line-height: 1.05; color: var(--una-blue); }
+    .meta-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: 999px;
+      background: #fff; border: 1px solid var(--line); color: var(--muted);
+      box-shadow: 0 8px 24px rgba(21, 34, 56, .05);
+      font-size: 13px;
+    }
+    .meta-pill b { color: var(--una-blue); }
+
+    .intro { display: grid; grid-template-columns: 1.35fr .65fr; gap: 20px; padding: 24px 0; align-items: stretch; }
+    .panel { background: rgba(255,255,255,.88); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .lead { padding: 24px; }
+    .lead h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 40px); color: var(--una-blue); line-height: 1.08; }
+    .lead p { margin: 0; color: var(--muted); line-height: 1.6; max-width: 72ch; }
+    .stats { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .stat strong { display:block; font-size: 28px; color: var(--edeca-green); line-height: 1; }
+    .stat span { display:block; margin-top: 7px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+
+    .toolbar {
+      position: sticky; top: 0; z-index: 20;
+      display:flex; gap: 12px; flex-wrap: wrap; align-items:center; justify-content: space-between;
+      padding: 14px; margin: 0 0 18px;
+      background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+      border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 32px rgba(21,34,56,.08);
+    }
+    .filters { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+    label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 800; }
+    select, input {
+      height: 42px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px;
+      background: #fff; color: var(--ink); outline: none; font-size: 14px;
+    }
+    select:focus, input:focus { border-color: var(--una-blue-2); box-shadow: 0 0 0 4px rgba(10, 93, 159, .12); }
+    .legend { display:flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .legend-item { display:inline-flex; align-items:center; gap: 7px; font-size: 13px; color: var(--muted); }
+    .dot { width: 13px; height: 13px; border-radius: 4px; border: 1px solid transparent; }
+    .dot.free { background: #fff; border-color: var(--line); }
+    .dot.morning { background: var(--morning); border-color: var(--morning-border); }
+    .dot.afternoon { background: var(--afternoon); border-color: var(--afternoon-border); }
+    .dot.night { background: var(--night); border-color: var(--night-border); }
+
+    .aula-section { margin: 0 0 28px; overflow: hidden; }
+    .aula-head { display:flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, rgba(0,60,113,.08), rgba(0,122,83,.06)); }
+    .aula-head h2 { margin:0; font-size: 22px; color: var(--una-blue); }
+    .aula-head span { color: var(--muted); font-size: 13px; }
+    .schedule-wrap { overflow-x: auto; background: #fff; }
+    .schedule { width: 100%; min-width: 930px; border-collapse: separate; border-spacing: 0; }
+    .schedule th {
+      background: #F6F8FB; color: var(--una-blue); font-size: 12px; text-transform: uppercase; letter-spacing: .1em;
+      padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: left;
+    }
+    .schedule th:not(:last-child), .schedule td:not(:last-child) { border-right: 1px solid var(--line); }
+    .schedule td { border-bottom: 1px solid var(--line); vertical-align: top; min-height: 90px; padding: 10px; background: #fff; }
+    .schedule tr:last-child td { border-bottom: 0; }
+    .turno-cell { width: 124px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+    .turno-cell .small { display:block; margin-top: 6px; color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .turno-morning { background: linear-gradient(180deg, #F6FAFF, #FFFFFF) !important; color: #165A9F; }
+    .turno-afternoon { background: linear-gradient(180deg, #F4FCF7, #FFFFFF) !important; color: #007A53; }
+    .turno-night { background: linear-gradient(180deg, #FBF7FF, #FFFFFF) !important; color: #6D36C9; }
+
+    .free {
+      height: 76px; min-width: 116px;
+      display:grid; place-items:center;
+      color: #A9B5C2; font-size: 18px;
+      background-image: radial-gradient(circle, #DDE5ED 1px, transparent 1px);
+      background-size: 16px 16px;
+      border-radius: 12px;
+    }
+    .cell-events { display:grid; gap: 8px; min-width: 130px; }
+    .event-card {
+      appearance: none; border: 1px solid transparent; text-align: left; width:100%;
+      border-radius: 13px; padding: 10px 11px; cursor: pointer; color: var(--ink);
+      background: #fff; transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      box-shadow: 0 8px 16px rgba(21,34,56,.07);
+      position: relative;
+    }
+    .event-card:hover, .event-card:focus { transform: translateY(-2px); outline: none; box-shadow: 0 14px 26px rgba(21,34,56,.13); border-color: rgba(0,60,113,.25); }
+    .event-card.morning { background: linear-gradient(180deg, var(--morning), #F2F8FF); border-color: var(--morning-border); }
+    .event-card.afternoon { background: linear-gradient(180deg, var(--afternoon), #F5FFF9); border-color: var(--afternoon-border); }
+    .event-card.night { background: linear-gradient(180deg, var(--night), #FCF8FF); border-color: var(--night-border); }
+    .profesor { display:block; font-weight: 800; font-size: 13px; line-height: 1.25; color: #0F2845; }
+    .event-card .time { display:inline-flex; margin-top: 6px; font-size: 11px; color: var(--muted); font-weight: 700; letter-spacing: .02em; }
+    .event-card .code { display:inline-block; margin-top: 7px; padding: 3px 6px; border-radius: 999px; background: rgba(255,255,255,.74); font-size: 11px; color: var(--una-blue); font-weight: 800; }
+
+    .tooltip {
+      position: fixed; z-index: 1000; width: min(340px, calc(100vw - 28px));
+      background: #102033; color: #fff; border: 1px solid rgba(255,255,255,.13);
+      border-radius: 16px; box-shadow: 0 18px 46px rgba(12, 24, 38, .35);
+      padding: 14px; pointer-events: none; opacity: 0; transform: translateY(6px);
+      transition: opacity .12s ease, transform .12s ease;
+    }
+    .tooltip.is-visible { opacity: 1; transform: translateY(0); }
+    .tooltip h3 { margin: 0 0 8px; font-size: 15px; line-height: 1.3; }
+    .tooltip .grid { display:grid; grid-template-columns: 82px 1fr; gap: 7px 10px; font-size: 12px; line-height: 1.35; }
+    .tooltip .label { color: #AFC1D1; font-weight: 700; }
+    .tooltip .value { color: #fff; }
+    .tooltip .badge { display:inline-flex; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 3px 8px; font-weight: 800; }
+
+    .table-panel { margin: 22px 0 46px; overflow:hidden; }
+    details summary { cursor:pointer; padding: 18px 20px; font-weight: 800; color: var(--una-blue); list-style: none; }
+    details summary::-webkit-details-marker { display:none; }
+    .data-table-wrap { max-height: 440px; overflow:auto; border-top: 1px solid var(--line); }
+    .data-table { width:100%; border-collapse: collapse; background:#fff; min-width: 1020px; }
+    .data-table th, .data-table td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align:left; font-size: 13px; }
+    .data-table th { position: sticky; top:0; background:#F6F8FB; color: var(--una-blue); text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+
+    .footer { padding: 24px 0 42px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .footer strong { color: var(--una-blue); }
+
+    @media (max-width: 900px) {
+      .intro { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .toolbar { position: static; }
+    }
+    @media (max-width: 640px) {
+      .page { width: min(100% - 22px, 1240px); }
+      .stats { grid-template-columns: 1fr; }
+      .filters, .toolbar { align-items: stretch; }
+      .filters { width: 100%; }
+      .filters > div { width: 100%; }
+      select, input { width: 100%; }
+      .legend { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="page brand-row">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">UNA</div>
+        <div class="brand-text">
+          <span>Universidad Nacional · EDECA</span>
+          <strong>Ocupación de aulas</strong>
+        </div>
+      </div>
+      <div class="meta-pill">Periodo <b>202620</b> · Reporte base 04/06/2026</div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro" aria-labelledby="title">
+      <div class="panel lead">
+        <h1 id="title">Horario institucional por aula, jornada y día</h1>
+        <p>Visualización web para consulta rápida de disponibilidad y ocupación. Al posicionarse sobre cada profesor se muestra el código, el nombre del curso, el NRC, el grupo y el horario correspondiente.</p>
+      </div>
+      <div class="panel stats" aria-label="Resumen del horario">
+        <div class="stat"><strong id="stat-aulas">7</strong><span>Aulas</span></div>
+        <div class="stat"><strong id="stat-registros">50</strong><span>Registros</span></div>
+        <div class="stat"><strong>6</strong><span>Días lectivos</span></div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Filtros de visualización">
+      <div class="filters">
+        <div>
+          <label for="aulaFilter">Aula</label><br />
+          <select id="aulaFilter">
+            <option value="TODAS">Todas las aulas</option>
+          </select>
+        </div>
+        <div>
+          <label for="searchInput">Buscar profesor, código o curso</label><br />
+          <input id="searchInput" type="search" placeholder="Ej.: Sergio, AMQ432, Ecología" />
+        </div>
+      </div>
+      <div class="legend" aria-label="Leyenda">
+        <span class="legend-item"><span class="dot free"></span>Disponible</span>
+        <span class="legend-item"><span class="dot morning"></span>Ocupada · Mañana</span>
+        <span class="legend-item"><span class="dot afternoon"></span>Ocupada · Tarde</span>
+        <span class="legend-item"><span class="dot night"></span>Ocupada · Noche</span>
+      </div>
+    </section>
+
+    <div id="scheduleRoot"></div>
+
+    <section class="panel table-panel">
+      <details>
+        <summary>Ver tabla completa de registros</summary>
+        <div class="data-table-wrap">
+          <table class="data-table" id="dataTable"></table>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
+
+  <footer class="page footer">
+    <strong>Nota técnica:</strong> página estática preparada para GitHub Pages. Los datos están incrustados en este archivo HTML, por lo que no requiere servidor ni base de datos externa. Para incorporar logos oficiales, se recomienda agregarlos como archivos separados sin modificar su color, proporción ni área de protección.
+  </footer>
+
+  <script>
+    const DATA = [
+      {
+            "id": "ev002",
+            "aula": "L601",
+            "aula_original": "L601",
+            "hora": "08:00-12:10",
+            "hora_raw": "0800-1210",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "PABLO RAMIREZ GRANADOS",
+            "codigo": "AME408",
+            "curso": "GEOLOGIA AMBIENTAL Y SUELOS",
+            "nrc": "51769",
+            "grupo": "01"
+      },
+      {
+            "id": "ev032",
+            "aula": "L601",
+            "aula_original": "L601",
+            "hora": "13:00-16:55",
+            "hora_raw": "1300-1655",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "ROY CRUZ MORALES",
+            "codigo": "AMQ414",
+            "curso": "SISTEMAS INFORM GEOGRAF I",
+            "nrc": "53097",
+            "grupo": "01"
+      },
+      {
+            "id": "ev036",
+            "aula": "L601",
+            "aula_original": "L601",
+            "hora": "16:30-19:00",
+            "hora_raw": "1630-1900",
+            "turno": "Noche",
+            "dia": "LUNES",
+            "profesor": "PABLO RAMIREZ GRANADOS",
+            "codigo": "AMQ423",
+            "curso": "HIDROLOGÍA FORESTAL",
+            "nrc": "53173",
+            "grupo": "01"
+      },
+      {
+            "id": "ev012",
+            "aula": "L602",
+            "aula_original": "L602",
+            "hora": "10:31-12:00",
+            "hora_raw": "1031-1200",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "GREYTY QUESADA THOMPSON",
+            "codigo": "AME424",
+            "curso": "PLANIFIC AMBIENTAL DEL TERRITO",
+            "nrc": "51810",
+            "grupo": "01"
+      },
+      {
+            "id": "ev007",
+            "aula": "L602",
+            "aula_original": "L602",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "JUEVES",
+            "profesor": "MARIA GAMBOA JIMENEZ",
+            "codigo": "AME418",
+            "curso": "INGEN Y SANEAMIENTO AMBIENTAL",
+            "nrc": "51797",
+            "grupo": "01"
+      },
+      {
+            "id": "ev005",
+            "aula": "L602",
+            "aula_original": "L602",
+            "hora": "13:00-15:55",
+            "hora_raw": "1300-1555",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "MARGARET PINNOCK BRANFORD",
+            "codigo": "AME410L",
+            "curso": "LABORAT TOXICOLOGIA AMBIENTAL",
+            "nrc": "51789",
+            "grupo": "01"
+      },
+      {
+            "id": "ev009",
+            "aula": "L602",
+            "aula_original": "L602",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "JOSE ROJAS MARIN",
+            "codigo": "AME419L",
+            "curso": "LAB. TRATAMIEN RESIDUOS SOLIDO",
+            "nrc": "51806",
+            "grupo": "01"
+      },
+      {
+            "id": "ev034",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "08:00-11:00",
+            "hora_raw": "0800-1100",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "MARIA AVELLAN ZUMBADO",
+            "codigo": "AMQ421",
+            "curso": "ARBORICULTURA",
+            "nrc": "53168",
+            "grupo": "01"
+      },
+      {
+            "id": "ev028",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "MARCO OTAROLA ROJAS",
+            "codigo": "AMQ410",
+            "curso": "DENDROLOGÍA I",
+            "nrc": "53093",
+            "grupo": "01"
+      },
+      {
+            "id": "ev029",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "MIÉRCOLES",
+            "profesor": "ROSALIA RODRIGUEZ PORRAS",
+            "codigo": "AMQ411",
+            "curso": "PLAGAS Y ENFERMEDADES FORESTAL",
+            "nrc": "53094",
+            "grupo": "01"
+      },
+      {
+            "id": "ev039",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "LUNES",
+            "profesor": "Sin profesor asignado",
+            "codigo": "AMQ431",
+            "curso": "INDUSTRIA FORESTAL",
+            "nrc": "53198",
+            "grupo": "01"
+      },
+      {
+            "id": "ev042",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "IGOR ZUÑIGA GARITA",
+            "codigo": "AMQ433",
+            "curso": "EVALUACIÓN DE IMPAC AMBIENTAL",
+            "nrc": "53241",
+            "grupo": "01"
+      },
+      {
+            "id": "ev027",
+            "aula": "L603",
+            "aula_original": "L603",
+            "hora": "13:00-16:58",
+            "hora_raw": "1300-1658",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "STEPHANIE NUÑEZ HIDALGO",
+            "codigo": "AMQ403",
+            "curso": "ANATOMÍA Y FISIOLOGÍA VEGETAL",
+            "nrc": "53092",
+            "grupo": "01"
+      },
+      {
+            "id": "ev030",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "08:00-11:00",
+            "hora_raw": "0800-1100",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "ALBERT MORERA BEITA",
+            "codigo": "AMQ412",
+            "curso": "ECOLOGÍA FORESTAL II",
+            "nrc": "53095",
+            "grupo": "01"
+      },
+      {
+            "id": "ev001",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "GUSTAVO VARGAS ROJAS",
+            "codigo": "AME401",
+            "curso": "ECOLOGIA APLICADA",
+            "nrc": "51768",
+            "grupo": "01"
+      },
+      {
+            "id": "ev041",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "08:00-10:00",
+            "hora_raw": "0800-1000",
+            "turno": "Mañana",
+            "dia": "JUEVES",
+            "profesor": "SERGIO MOLINA MURILLO",
+            "codigo": "AMQ432",
+            "curso": "COMERCIO Y MERCADEO FORESTAL",
+            "nrc": "53236",
+            "grupo": "01"
+      },
+      {
+            "id": "ev044",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "10:01-12:00",
+            "hora_raw": "1001-1200",
+            "turno": "Mañana",
+            "dia": "JUEVES",
+            "profesor": "ROY CRUZ MORALES",
+            "codigo": "AMQ434",
+            "curso": "PRÁCTICA PROFESIONAL SUPERVISA",
+            "nrc": "53292",
+            "grupo": "01"
+      },
+      {
+            "id": "ev015",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "VIERNES",
+            "profesor": "VANESSA VALERIO HERNANDEZ",
+            "codigo": "AME505",
+            "curso": "MANEJO CONFLICTOS SOCIOAMBIENT",
+            "nrc": "51826",
+            "grupo": "01"
+      },
+      {
+            "id": "ev035",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "13:00-15:00",
+            "hora_raw": "1300-1500",
+            "turno": "Tarde",
+            "dia": "LUNES",
+            "profesor": "RAFAEL MURILLO CRUZ",
+            "codigo": "AMQ422",
+            "curso": "SILVICULT PLANTACIONES FORESTA",
+            "nrc": "53172",
+            "grupo": "01"
+      },
+      {
+            "id": "ev013",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "MANFRED MURRELL BLANCO",
+            "codigo": "AME425",
+            "curso": "PRACTICA PROFESIONAL SUPERVISA",
+            "nrc": "51815",
+            "grupo": "01"
+      },
+      {
+            "id": "ev040",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "13:00-15:00",
+            "hora_raw": "1300-1500",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "Sin profesor asignado",
+            "codigo": "AMQ431",
+            "curso": "INDUSTRIA FORESTAL",
+            "nrc": "53198",
+            "grupo": "01"
+      },
+      {
+            "id": "ev010",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "13:00-16:55",
+            "hora_raw": "1300-1655",
+            "turno": "Tarde",
+            "dia": "JUEVES",
+            "profesor": "ERNESTO MONTERO SANCHEZ",
+            "codigo": "AME420",
+            "curso": "METOD Y MEDIC CONDIC TRABAJO",
+            "nrc": "51808",
+            "grupo": "01"
+      },
+      {
+            "id": "ev018",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "13:00-16:30",
+            "hora_raw": "1300-1630",
+            "turno": "Tarde",
+            "dia": "VIERNES",
+            "profesor": "MARIA CHAVES VILLALOBOS",
+            "codigo": "AME509",
+            "curso": "TALLER TECNOLOGIAS AMBIENTA II",
+            "nrc": "51832",
+            "grupo": "01"
+      },
+      {
+            "id": "ev017",
+            "aula": "708",
+            "aula_original": "0708",
+            "hora": "17:00-20:00",
+            "hora_raw": "1700-2000",
+            "turno": "Noche",
+            "dia": "VIERNES",
+            "profesor": "KARLA VETRANI CHAVARRIA",
+            "codigo": "AME508",
+            "curso": "ADMINI SISTEMAS GEST AMBIENTAL",
+            "nrc": "51829",
+            "grupo": "01"
+      },
+      {
+            "id": "ev020",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "08:00-10:00",
+            "hora_raw": "0800-1000",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "GUSTAVO VARGAS ROJAS",
+            "codigo": "AMQ103O",
+            "curso": "ÁRBOLES Y SOCIEDAD",
+            "nrc": "52332",
+            "grupo": "01"
+      },
+      {
+            "id": "ev004",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "09:00-12:00",
+            "hora_raw": "0900-1200",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "JESUS UGALDE GOMEZ",
+            "codigo": "AME410",
+            "curso": "TOXICOLOGIA AMBIENTAL",
+            "nrc": "51785",
+            "grupo": "01"
+      },
+      {
+            "id": "ev038",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "MIÉRCOLES",
+            "profesor": "RONNY VILLALOBOS CHACON",
+            "codigo": "AMQ430",
+            "curso": "ORDENACIÓN DE LA PROD FORESTAL",
+            "nrc": "53189",
+            "grupo": "01"
+      },
+      {
+            "id": "ev003",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "JUEVES",
+            "profesor": "SHERRYL CAMPOS MORALES",
+            "codigo": "AME409",
+            "curso": "SISTEM GESTION CALIDAD Y AMBIE",
+            "nrc": "51770",
+            "grupo": "01"
+      },
+      {
+            "id": "ev048",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "09:00-12:00",
+            "hora_raw": "0900-1200",
+            "turno": "Mañana",
+            "dia": "VIERNES",
+            "profesor": "SERGIO MOLINA MURILLO",
+            "codigo": "AMQ507",
+            "curso": "COMERCIO INTER PROD FORESTALES",
+            "nrc": "53271",
+            "grupo": "01"
+      },
+      {
+            "id": "ev016",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "08:00-12:10",
+            "hora_raw": "0800-1210",
+            "turno": "Mañana",
+            "dia": "SÁBADO",
+            "profesor": "MANUEL MENDEZ FLORES",
+            "codigo": "AME507",
+            "curso": "TECN SOSTEN CONSTR E INDUSTRIA",
+            "nrc": "51827",
+            "grupo": "01"
+      },
+      {
+            "id": "ev025",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "16:01-18:00",
+            "hora_raw": "1601-1800",
+            "turno": "Tarde",
+            "dia": "LUNES",
+            "profesor": "MARCO OTAROLA ROJAS",
+            "codigo": "AMQ112O",
+            "curso": "MONIT ECOL EN ECOSISTE FORESTA",
+            "nrc": "52361",
+            "grupo": "01"
+      },
+      {
+            "id": "ev031",
+            "aula": "709",
+            "aula_original": "0709",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "RONNY VILLALOBOS CHACON",
+            "codigo": "AMQ413",
+            "curso": "EPIDOMETRÍA",
+            "nrc": "53096",
+            "grupo": "01"
+      },
+      {
+            "id": "ev014",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "09:00-12:00",
+            "hora_raw": "0900-1200",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "FEDERICO ALICE GUIER",
+            "codigo": "AME443O",
+            "curso": "CAM CLIM III: NUEV SOL POL FIN",
+            "nrc": "51823",
+            "grupo": "01"
+      },
+      {
+            "id": "ev033",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "08:00-11:00",
+            "hora_raw": "0800-1100",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "ALBERT MORERA BEITA",
+            "codigo": "AMQ420",
+            "curso": "RESTAURACIÓN DE ECOSISTEMAS",
+            "nrc": "53100",
+            "grupo": "01"
+      },
+      {
+            "id": "ev026",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "JUEVES",
+            "profesor": "LAURA LEANDRO ZUÑIGA",
+            "codigo": "AMQ113O",
+            "curso": "TEC, PROPIEDADES Y USOS MADERA",
+            "nrc": "53091",
+            "grupo": "01"
+      },
+      {
+            "id": "ev021",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "16:00-19:00",
+            "hora_raw": "1600-1900",
+            "turno": "Tarde",
+            "dia": "LUNES",
+            "profesor": "MARILYN ROJAS VARGAS",
+            "codigo": "AMQ105O",
+            "curso": "BAMBÚ: INNOV, DESARROLLO Y MER",
+            "nrc": "52334",
+            "grupo": "01"
+      },
+      {
+            "id": "ev022",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "16:01-18:30",
+            "hora_raw": "1601-1830",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "MARIA AVELLAN ZUMBADO",
+            "codigo": "AMQ109O",
+            "curso": "FORESTERÍA COMUNITARIA",
+            "nrc": "52337",
+            "grupo": "01"
+      },
+      {
+            "id": "ev024",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "16:00-19:00",
+            "hora_raw": "1600-1900",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "LUIS ALFARO ALVARADO",
+            "codigo": "AMQ111O",
+            "curso": "MANEJO FAUNA SILV ECOSIS FORES",
+            "nrc": "52381",
+            "grupo": "01"
+      },
+      {
+            "id": "ev047",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "13:00-15:59",
+            "hora_raw": "1300-1559",
+            "turno": "Tarde",
+            "dia": "JUEVES",
+            "profesor": "WILLIAM HERNANDEZ CASTRO",
+            "codigo": "AMQ506",
+            "curso": "CONSERV Y MEJORAMI GEN FORESTA",
+            "nrc": "53244",
+            "grupo": "01"
+      },
+      {
+            "id": "ev046",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "13:00-15:59",
+            "hora_raw": "1300-1559",
+            "turno": "Tarde",
+            "dia": "VIERNES",
+            "profesor": "FEDERICO ALICE GUIER",
+            "codigo": "AMQ505",
+            "curso": "BOSQUES Y ESTR CAMBIO CLIMÁTIC",
+            "nrc": "53243",
+            "grupo": "01"
+      },
+      {
+            "id": "ev049",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "16:30-19:30",
+            "hora_raw": "1630-1930",
+            "turno": "Noche",
+            "dia": "JUEVES",
+            "profesor": "IGOR ZUÑIGA GARITA",
+            "codigo": "AMQ508",
+            "curso": "GERENCIA ESTRATÉGICA",
+            "nrc": "53280",
+            "grupo": "01"
+      },
+      {
+            "id": "ev050",
+            "aula": "710",
+            "aula_original": "0710",
+            "hora": "16:31-18:31",
+            "hora_raw": "1631-1831",
+            "turno": "Noche",
+            "dia": "VIERNES",
+            "profesor": "DAMIAN SANCHEZ RODRIGUEZ",
+            "codigo": "AMQ509",
+            "curso": "TRABAJO FINAL DE GRADUACIÓN II",
+            "nrc": "53285",
+            "grupo": "01"
+      },
+      {
+            "id": "ev006",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "LUNES",
+            "profesor": "SHERRYL CAMPOS MORALES",
+            "codigo": "AME417",
+            "curso": "ANALIS PROCESOS ECOEFICIENTES",
+            "nrc": "51792",
+            "grupo": "01"
+      },
+      {
+            "id": "ev011",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "09:00-10:30",
+            "hora_raw": "0900-1030",
+            "turno": "Mañana",
+            "dia": "MARTES",
+            "profesor": "GREYTY QUESADA THOMPSON",
+            "codigo": "AME424",
+            "curso": "PLANIFIC AMBIENTAL DEL TERRITO",
+            "nrc": "51810",
+            "grupo": "01"
+      },
+      {
+            "id": "ev008",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "08:00-12:00",
+            "hora_raw": "0800-1200",
+            "turno": "Mañana",
+            "dia": "MIÉRCOLES",
+            "profesor": "JOSE ROJAS MARIN",
+            "codigo": "AME419",
+            "curso": "TRATAMIENTO RESIDUOS SOLIDOS",
+            "nrc": "51804",
+            "grupo": "01"
+      },
+      {
+            "id": "ev019",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "13:30-16:30",
+            "hora_raw": "1330-1630",
+            "turno": "Tarde",
+            "dia": "LUNES",
+            "profesor": "VICTOR MEZA PICADO",
+            "codigo": "AMQ102O",
+            "curso": "ACTUALIDAD FORESTAL",
+            "nrc": "52330",
+            "grupo": "01"
+      },
+      {
+            "id": "ev023",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "13:00-16:00",
+            "hora_raw": "1300-1600",
+            "turno": "Tarde",
+            "dia": "MARTES",
+            "profesor": "MARIA ALVAREZ JIMENEZ",
+            "codigo": "AMQ110O",
+            "curso": "INTROD MANEJO SOSTENIBLE AGUA",
+            "nrc": "52341",
+            "grupo": "01"
+      },
+      {
+            "id": "ev037",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "13:00-16:00",
+            "hora_raw": "1300-1600",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "SERGIO MOLINA MURILLO",
+            "codigo": "AMQ424",
+            "curso": "ECONOMÍA FORESTAL",
+            "nrc": "53182",
+            "grupo": "01"
+      },
+      {
+            "id": "ev043",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "16:01-17:40",
+            "hora_raw": "1601-1740",
+            "turno": "Tarde",
+            "dia": "MIÉRCOLES",
+            "profesor": "IGOR ZUÑIGA GARITA",
+            "codigo": "AMQ433",
+            "curso": "EVALUACIÓN DE IMPAC AMBIENTAL",
+            "nrc": "53241",
+            "grupo": "01"
+      },
+      {
+            "id": "ev045",
+            "aula": "711",
+            "aula_original": "0711",
+            "hora": "13:00-17:00",
+            "hora_raw": "1300-1700",
+            "turno": "Tarde",
+            "dia": "JUEVES",
+            "profesor": "ROY CRUZ MORALES",
+            "codigo": "AMQ434",
+            "curso": "PRÁCTICA PROFESIONAL SUPERVISA",
+            "nrc": "53292",
+            "grupo": "01"
+      }
+];
+    const DAYS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    const TURNS = ['Mañana', 'Tarde', 'Noche'];
+    const AULAS = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
+
+    const root = document.getElementById('scheduleRoot');
+    const aulaFilter = document.getElementById('aulaFilter');
+    const searchInput = document.getElementById('searchInput');
+    const tooltip = document.getElementById('tooltip');
+
+    AULAS.forEach(aula => {
+      const opt = document.createElement('option');
+      opt.value = aula;
+      opt.textContent = `Aula ${aula}`;
+      aulaFilter.appendChild(opt);
+    });
+
+    function turnClass(turno) {
+      if (turno === 'Mañana') return 'morning';
+      if (turno === 'Tarde') return 'afternoon';
+      return 'night';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function normalize(value) {
+      return String(value ?? '')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase();
+    }
+
+    function recordMatches(record, query) {
+      if (!query) return true;
+      const haystack = normalize([record.aula, record.hora, record.turno, record.dia, record.profesor, record.codigo, record.curso, record.nrc, record.grupo].join(' '));
+      return haystack.includes(normalize(query));
+    }
+
+    function getFilteredData() {
+      const aula = aulaFilter.value;
+      const query = searchInput.value.trim();
+      return DATA.filter(record => (aula === 'TODAS' || record.aula === aula) && recordMatches(record, query));
+    }
+
+    function sortEvents(events) {
+      return events.slice().sort((a, b) => a.hora.localeCompare(b.hora) || a.codigo.localeCompare(b.codigo));
+    }
+
+    function buildEventButton(record) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `event-card ${turnClass(record.turno)}`;
+      button.setAttribute('aria-label', `${record.profesor}. ${record.codigo}, ${record.curso}, ${record.hora}`);
+      button.dataset.record = JSON.stringify(record);
+      button.innerHTML = `
+        <span class="profesor">${escapeHtml(record.profesor)}</span>
+        <span class="time">${escapeHtml(record.hora)}</span><br />
+        <span class="code">${escapeHtml(record.codigo)}</span>
+      `;
+      button.addEventListener('mouseenter', showTooltip);
+      button.addEventListener('mousemove', moveTooltip);
+      button.addEventListener('mouseleave', hideTooltip);
+      button.addEventListener('focus', showTooltip);
+      button.addEventListener('blur', hideTooltip);
+      button.addEventListener('click', event => {
+        showTooltip(event);
+        setTimeout(() => tooltip.classList.add('is-visible'), 0);
+      });
+      return button;
+    }
+
+    function buildScheduleForAula(aula, data) {
+      const section = document.createElement('section');
+      section.className = 'panel aula-section';
+      section.id = `aula-${aula}`;
+      const count = data.filter(r => r.aula === aula).length;
+      section.innerHTML = `
+        <div class="aula-head">
+          <h2>Aula ${escapeHtml(aula)}</h2>
+          <span>${count} registro${count === 1 ? '' : 's'} de ocupación</span>
+        </div>
+        <div class="schedule-wrap">
+          <table class="schedule" aria-label="Horario del aula ${escapeHtml(aula)}">
+            <thead>
+              <tr><th>Jornada</th>${DAYS.map(day => `<th>${day}</th>`).join('')}</tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      `;
+      const tbody = section.querySelector('tbody');
+      TURNS.forEach(turno => {
+        const tr = document.createElement('tr');
+        const className = turnClass(turno);
+        tr.innerHTML = `<td class="turno-cell turno-${className}">${turno}<span class="small">${turno === 'Mañana' ? 'Inicio antes de 13:00' : turno === 'Tarde' ? 'Inicio entre 13:00 y 16:29' : 'Inicio desde 16:30'}</span></td>`;
+        DAYS.forEach(day => {
+          const td = document.createElement('td');
+          const events = sortEvents(data.filter(r => r.aula === aula && r.turno === turno && r.dia === day));
+          if (events.length === 0) {
+            td.innerHTML = '<div class="free" aria-label="Disponible">–</div>';
+          } else {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'cell-events';
+            events.forEach(record => wrapper.appendChild(buildEventButton(record)));
+            td.appendChild(wrapper);
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      return section;
+    }
+
+    function renderSchedules() {
+      const data = getFilteredData();
+      root.innerHTML = '';
+      const selected = aulaFilter.value;
+      const aulasToRender = selected === 'TODAS' ? AULAS : [selected];
+      aulasToRender.forEach(aula => root.appendChild(buildScheduleForAula(aula, data)));
+      renderDataTable(data);
+    }
+
+    function renderDataTable(data) {
+      const table = document.getElementById('dataTable');
+      const headers = ['Aula', 'Hora', 'Turno', 'Día', 'Profesor', 'Código', 'Curso', 'NRC', 'Grupo'];
+      const keys = ['aula', 'hora', 'turno', 'dia', 'profesor', 'codigo', 'curso', 'nrc', 'grupo'];
+      table.innerHTML = `<thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+      const tbody = document.createElement('tbody');
+      data.forEach(record => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = keys.map(k => `<td>${escapeHtml(record[k])}</td>`).join('');
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+    }
+
+    function tooltipHtml(record) {
+      return `
+        <h3>${escapeHtml(record.profesor)}</h3>
+        <div class="grid">
+          <span class="label">Código</span><span class="value"><span class="badge">${escapeHtml(record.codigo)}</span></span>
+          <span class="label">Curso</span><span class="value">${escapeHtml(record.curso)}</span>
+          <span class="label">NRC</span><span class="value">${escapeHtml(record.nrc)}</span>
+          <span class="label">Grupo</span><span class="value">${escapeHtml(record.grupo)}</span>
+          <span class="label">Horario</span><span class="value">${escapeHtml(record.dia)} · ${escapeHtml(record.hora)}</span>
+          <span class="label">Aula</span><span class="value">${escapeHtml(record.aula)}</span>
+          <span class="label">Jornada</span><span class="value">${escapeHtml(record.turno)}</span>
+        </div>
+      `;
+    }
+
+    function showTooltip(event) {
+      const target = event.currentTarget;
+      const record = JSON.parse(target.dataset.record);
+      tooltip.innerHTML = tooltipHtml(record);
+      tooltip.setAttribute('aria-hidden', 'false');
+      tooltip.classList.add('is-visible');
+      moveTooltip(event);
+    }
+
+    function moveTooltip(event) {
+      const padding = 16;
+      const width = tooltip.offsetWidth || 340;
+      const height = tooltip.offsetHeight || 180;
+      let x = (event.clientX || event.currentTarget.getBoundingClientRect().left) + 18;
+      let y = (event.clientY || event.currentTarget.getBoundingClientRect().top) + 18;
+      if (x + width + padding > window.innerWidth) x = window.innerWidth - width - padding;
+      if (y + height + padding > window.innerHeight) y = window.innerHeight - height - padding;
+      tooltip.style.left = `${Math.max(padding, x)}px`;
+      tooltip.style.top = `${Math.max(padding, y)}px`;
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('is-visible');
+      tooltip.setAttribute('aria-hidden', 'true');
+    }
+
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') hideTooltip(); });
+    aulaFilter.addEventListener('change', renderSchedules);
+    searchInput.addEventListener('input', renderSchedules);
+
+    renderSchedules();
+  </script>
+</body>
+</html>
