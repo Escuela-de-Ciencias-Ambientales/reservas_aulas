@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ingreso docente | Reservación de aulas EDECA</title>
+  <meta name="description" content="Acceso exclusivo para el personal docente al sistema de reservación de aulas de EDECA." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="ingreso.css?v=1" />
+</head>
+<body>
+  <header class="access-header">
+    <a class="brand" href="index.html" aria-label="Volver al horario de ocupación">
+      <img src="logo-edeca.png" alt="Escuela de Ciencias Ambientales" />
+      <span>Escuela de Ciencias Ambientales</span>
+    </a>
+    <img class="una-logo" src="logo-una.png" alt="Universidad Nacional, Costa Rica" />
+  </header>
+
+  <main class="access-main">
+    <section class="access-copy">
+      <p class="eyebrow">Acceso exclusivo para docentes</p>
+      <h1>Reservación de aulas</h1>
+      <p>Ingresa con el correo institucional y la contraseña asignada por la administración de la Escuela.</p>
+      <a href="index.html">← Volver a ocupación de aulas</a>
+    </section>
+
+    <section class="login-panel" aria-labelledby="loginTitle">
+      <div class="lock-mark" aria-hidden="true">EDECA</div>
+      <h2 id="loginTitle">Ingreso docente</h2>
+      <p>Tu usuario es el correo institucional.</p>
+      <div class="message" id="loginMessage" role="status" aria-live="polite" hidden></div>
+      <form id="loginForm">
+        <label for="loginEmail">Correo electrónico</label>
+        <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
+        <label for="loginPassword">Contraseña</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="8" required />
+        <button id="loginButton" type="submit">Ingresar a reservas</button>
+      </form>
+      <small>Si no tienes acceso o necesitas restablecer tu contraseña, comunícate con la administración.</small>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=3"></script>
+  <script src="ingreso.js?v=1"></script>
+</body>
+</html>
