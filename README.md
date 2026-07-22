@@ -5,8 +5,10 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 ## Funciones incluidas
 
 - Consulta pública del horario académico fijo.
-- Consulta pública de las reservas registradas por fecha y aula.
-- Vista diaria de tramos disponibles y ocupados para cada aula.
+- Página pública limpia, dedicada únicamente a la ocupación académica.
+- Página independiente para el ingreso del personal docente.
+- Área privada de reservas disponible únicamente después de iniciar sesión.
+- Vista diaria de tramos disponibles y ocupados para cada aula dentro del área privada.
 - Inicio de sesión individual con correo y contraseña.
 - Creación de reservas por fecha, aula, hora de inicio, hora de finalización y actividad.
 - Bloqueo de cruces con clases fijas y con otras reservas.
@@ -19,7 +21,10 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 
 ## Estructura
 
-- `index.html`: interfaz y horario académico base.
+- `index.html`: página pública del horario académico, con acceso hacia el ingreso docente.
+- `ingreso.html`: página exclusiva para usuario y contraseña.
+- `reservas.html`: área privada de consulta y reservación.
+- `ingreso.css` y `ingreso.js`: presentación y autenticación de la página de acceso.
 - `reservas.css`: estilos del sistema de acceso y reservas.
 - `reservas.js`: autenticación, disponibilidad, reservas y administración.
 - `config.js`: conexión pública con Supabase.

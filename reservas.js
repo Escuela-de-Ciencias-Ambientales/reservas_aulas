@@ -6,21 +6,14 @@
   const cycleStart = config.cycleStart || '2026-07-20';
   const cycleEnd = config.cycleEnd || '2026-12-20';
   const academicScheduleEnd = config.academicScheduleEnd || '2026-11-14';
-  const roomCodes = typeof AULAS !== 'undefined' ? AULAS : ['L601', 'L602', 'L603', '708', '709', '710', '711'];
-  const baseSchedule = typeof DATA !== 'undefined' ? DATA : [];
+  const roomCodes = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
   const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
   const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
 
   const elements = {
-    sessionButton: document.getElementById('sessionButton'),
-    portal: document.getElementById('reservationPortal'),
     connectionStatus: document.getElementById('connectionStatus'),
     systemMessage: document.getElementById('systemMessage'),
-    guestView: document.getElementById('guestView'),
     userView: document.getElementById('userView'),
-    loginForm: document.getElementById('loginForm'),
-    loginEmail: document.getElementById('loginEmail'),
-    loginPassword: document.getElementById('loginPassword'),
     logoutButton: document.getElementById('logoutButton'),
     currentUserName: document.getElementById('currentUserName'),
     bookingForm: document.getElementById('bookingForm'),
@@ -37,6 +30,7 @@
     boardRoom: document.getElementById('boardRoom'),
     availabilityBoard: document.getElementById('availabilityBoard'),
     publicReservationsList: document.getElementById('publicReservationsList'),
+    reservationBoard: document.getElementById('reservationBoard'),
     adminPanel: document.getElementById('adminPanel'),
     createUserForm: document.getElementById('createUserForm'),
     adminBookingsList: document.getElementById('adminBookingsList')
@@ -47,6 +41,7 @@
     session: null,
     profile: null,
     rooms: roomCodes.map((code) => ({ id: null, code, name: `Aula ${code}` })),
+    fixedOccupancies: [],
     reservations: []
   };
 
@@ -109,11 +104,11 @@
 
   function baseConflict(roomCode, date, start, end) {
     if (date > academicScheduleEnd) return null;
-    const selectedDay = dayName(date);
-    return baseSchedule.find((record) =>
-      record.aula === roomCode &&
-      record.dia === selectedDay &&
-      overlaps(start, end, record.hora.slice(0, 5), record.hora.slice(-5))
+    const selectedDay = new Date(`${date}T12:00:00`).getDay();
+    return state.fixedOccupancies.find((record) =>
+      record.classrooms?.code === roomCode &&
+      record.day_of_week === selectedDay &&
+      overlaps(start, end, record.start_time, record.end_time)
     );
   }
 
@@ -133,7 +128,7 @@
     if (dayName(date) === 'DOMINGO') return { ok: false, message: 'No se permiten reservas los domingos.' };
     if (start >= end) return { ok: false, message: 'La hora de finalización debe ser posterior a la hora de inicio.' };
     const fixed = baseConflict(room, date, start, end);
-    if (fixed) return { ok: false, message: `El aula tiene una clase fija: ${fixed.hora}, ${fixed.profesor}.` };
+    if (fixed) return { ok: false, message: `El aula tiene una ocupación fija de ${normalizeTime(fixed.start_time)} a ${normalizeTime(fixed.end_time)}: ${fixed.label}.` };
     const reserved = reservationConflict(room, date, start, end);
     if (reserved) return { ok: false, message: `Ya existe una reserva de ${normalizeTime(reserved.start_time)} a ${normalizeTime(reserved.end_time)}.` };
     return { ok: true, message: 'Horario disponible. Puedes guardar la reserva.' };
@@ -197,11 +192,11 @@
   }
 
   function occupiedIntervals(roomCode, selectedDate) {
-    const selectedDay = dayName(selectedDate);
+    const selectedDay = new Date(`${selectedDate}T12:00:00`).getDay();
     const fixed = selectedDate <= academicScheduleEnd
-      ? baseSchedule
-          .filter((record) => record.aula === roomCode && record.dia === selectedDay)
-          .map((record) => ({ start: timeToMinutes(record.hora.slice(0, 5)), end: timeToMinutes(record.hora.slice(-5)), label: record.simple ? 'USAC' : record.curso }))
+      ? state.fixedOccupancies
+          .filter((record) => record.classrooms?.code === roomCode && record.day_of_week === selectedDay)
+          .map((record) => ({ start: timeToMinutes(record.start_time), end: timeToMinutes(record.end_time), label: record.label }))
       : [];
     const reservations = state.reservations
       .filter((item) => item.status === 'active' && item.reservation_date === selectedDate && item.classrooms?.code === roomCode)
@@ -290,10 +285,9 @@
 
   function renderSession() {
     const loggedIn = Boolean(state.session && state.profile);
-    elements.guestView.hidden = loggedIn;
     elements.userView.hidden = !loggedIn;
+    elements.reservationBoard.hidden = !loggedIn;
     elements.adminPanel.hidden = !loggedIn || state.profile?.role !== 'admin';
-    elements.sessionButton.textContent = loggedIn ? state.profile.full_name : 'Ingreso docente';
     if (!loggedIn) return;
     elements.currentUserName.textContent = state.profile.full_name;
     renderMyReservations();
@@ -305,6 +299,16 @@
     if (error) throw error;
     if (data?.length) state.rooms = data;
     populateRoomSelects();
+  }
+
+  async function loadFixedOccupancies() {
+    const { data, error } = await state.client
+      .from('fixed_occupancies')
+      .select('id,day_of_week,start_time,end_time,label,classrooms(code)')
+      .order('day_of_week')
+      .order('start_time');
+    if (error) throw error;
+    state.fixedOccupancies = data || [];
   }
 
   async function loadReservations() {
@@ -344,36 +348,10 @@
     renderSession();
   }
 
-  async function signIn(event) {
-    event.preventDefault();
-    clearMessage();
-    const button = elements.loginForm.querySelector('button[type="submit"]');
-    setBusy(button, true, 'Ingresando…');
-    try {
-      const { data, error } = await state.client.auth.signInWithPassword({
-        email: elements.loginEmail.value.trim(),
-        password: elements.loginPassword.value
-      });
-      if (error) throw error;
-      state.session = data.session;
-      await loadProfile();
-      await loadReservations();
-      elements.loginForm.reset();
-      showMessage(`Bienvenido, ${state.profile.full_name}.`);
-    } catch (error) {
-      showMessage(error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos.' : error.message, 'error');
-    } finally {
-      setBusy(button, false);
-    }
-  }
-
   async function signOut() {
     clearMessage();
     await state.client.auth.signOut();
-    state.session = null;
-    state.profile = null;
-    renderSession();
-    showMessage('La sesión se cerró correctamente.');
+    window.location.replace('ingreso.html');
   }
 
   async function saveReservation(event) {
@@ -467,11 +445,6 @@
   }
 
   function bindEvents() {
-    elements.sessionButton.addEventListener('click', () => {
-      elements.portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (!state.session) elements.loginEmail.focus({ preventScroll: true });
-    });
-    elements.loginForm.addEventListener('submit', signIn);
     elements.logoutButton.addEventListener('click', signOut);
     elements.bookingForm.addEventListener('submit', saveReservation);
     elements.createUserForm.addEventListener('submit', createUser);
@@ -506,10 +479,8 @@
     if (!isConfigured || !window.supabase?.createClient) {
       elements.connectionStatus.textContent = 'Configuración pendiente';
       elements.connectionStatus.classList.add('is-offline');
-      elements.loginForm.querySelector('button[type="submit"]').disabled = true;
       elements.saveBookingButton.disabled = true;
       showMessage('El sistema está instalado. Falta conectar las credenciales públicas del proyecto de Supabase.', 'error');
-      renderPublicReservations();
       return;
     }
 
@@ -519,17 +490,19 @@
       });
       elements.connectionStatus.textContent = 'Sistema disponible';
       await loadRooms();
+      await loadFixedOccupancies();
       const { data } = await state.client.auth.getSession();
       state.session = data.session;
-      if (state.session) await loadProfile();
+      if (!state.session) {
+        window.location.replace('ingreso.html');
+        return;
+      }
+      await loadProfile();
       await loadReservations();
       state.client.auth.onAuthStateChange(async (_event, session) => {
         state.session = session;
         if (session) await loadProfile();
-        else {
-          state.profile = null;
-          renderSession();
-        }
+        else window.location.replace('ingreso.html');
       });
     } catch (error) {
       elements.connectionStatus.textContent = 'Conexión no disponible';

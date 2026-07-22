@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reservas de aulas | EDECA</title>
-  <meta name="description" content="Sistema de consulta y reserva de aulas para el personal docente de la Escuela de Ciencias Ambientales." />
+  <title>Horario de ocupación de aulas | EDECA</title>
+  <meta name="description" content="Horario de ocupación de aulas por jornada, día y aula. II Ciclo 2026." />
   <style>
     :root {
       --una-blue: #003C71;
@@ -178,7 +178,6 @@
       .legend { gap: 8px; }
     }
   </style>
-  <link rel="stylesheet" href="reservas.css?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -238,6 +237,8 @@
     .identity-copy strong { display:block; margin-top:2px; color:var(--ink); font-size:clamp(25px,3.2vw,38px); line-height:1; letter-spacing:-.025em; }
     .report-meta { color:var(--una-gray); font-size:13px; line-height:1.5; text-align:right; }
     .report-meta strong { display:block; color:var(--una-red-dark); font-size:14px; }
+    .session-button { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:9px 15px; border:1px solid var(--una-red-dark); border-radius:999px; color:var(--una-red-dark); background:#fff; font-size:13px; font-weight:800; text-decoration:none; }
+    .session-button:hover, .session-button:focus-visible { color:#fff; background:var(--una-red-dark); }
 
     .intro { grid-template-columns:minmax(0,1fr) auto; gap:24px; padding:36px 0 24px; }
     .lead { padding:4px 0; border:0; background:transparent; box-shadow:none; }
@@ -330,7 +331,7 @@
         </div>
       </div>
       <div class="institutional-lockup">
-        <button class="session-button" id="sessionButton" type="button">Ingreso docente</button>
+        <a class="session-button" href="ingreso.html">Ingreso docente</a>
         <div class="report-meta"><strong>Periodo: II Ciclo 2026</strong>Reporte base 10/07/2026</div>
         <span class="brand-divider" aria-hidden="true"></span>
         <a class="logo-link logo-una" href="https://www.una.ac.cr/" target="_blank" rel="noopener" aria-label="Universidad Nacional, Costa Rica">
@@ -343,9 +344,8 @@
   <main class="page">
     <section class="intro" aria-labelledby="title">
       <div class="panel lead">
-        <p class="eyebrow">Reservas EDECA</p>
-        <h1 id="title">Consulta y reserva de aulas</h1>
-        <p>Revisa la disponibilidad académica y reserva un espacio en pocos pasos. El acceso para crear reservas es exclusivo del personal docente autorizado.</p>
+        <h1 id="title">Disponibilidad de aulas</h1>
+        <p>Consulta la ocupación por aula, jornada y día. Selecciona cualquier clase para ver el curso, NRC, grupo y detalle del horario.</p>
       </div>
       <div class="panel stats" aria-label="Resumen del horario">
         <div class="stat"><strong id="stat-aulas">7</strong><span>Aulas</span></div>
@@ -354,7 +354,7 @@
       </div>
     </section>
 
-    <section class="reservation-portal panel" id="reservationPortal" aria-labelledby="reservationTitle">
+    <section class="reservation-portal panel" id="reservationPortal" aria-labelledby="reservationTitle" hidden>
       <div class="portal-heading">
         <div>
           <p class="eyebrow">Gestión rápida</p>
@@ -440,7 +440,7 @@
       </div>
     </section>
 
-    <section class="reservation-board panel" aria-labelledby="boardTitle">
+    <section class="reservation-board panel" aria-labelledby="boardTitle" hidden>
       <div class="section-heading board-heading">
         <div><p class="eyebrow">Actualización inmediata</p><h2 id="boardTitle">Disponibilidad por aula</h2></div>
         <div class="board-filters">
@@ -482,7 +482,7 @@
       </div>
     </section>
 
-    <div class="schedule-heading">
+    <div class="schedule-heading" hidden>
       <div><p class="eyebrow">Referencia académica</p><h2>Horario fijo de ocupación</h2></div>
       <p>Estas clases bloquean automáticamente los espacios correspondientes al crear una reserva.</p>
     </div>
@@ -1461,8 +1461,5 @@
 
     renderSchedules();
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=2"></script>
-  <script src="reservas.js?v=2"></script>
 </body>
 </html>
