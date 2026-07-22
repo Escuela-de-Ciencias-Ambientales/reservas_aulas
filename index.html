@@ -178,26 +178,171 @@
       .legend { gap: 8px; }
     }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --una-red: #CD1719;
+      --una-red-dark: #990000;
+      --una-blue: #034991;
+      --una-gray: #585757;
+      --edeca-green: #177649;
+      --edeca-green-soft: #EAF5EF;
+      --edeca-yellow: #F4C900;
+      --ink: #202827;
+      --muted: #63706D;
+      --line: #DDE4E1;
+      --paper: #FFFFFF;
+      --page: #F4F6F5;
+      --morning: #FFFFFF;
+      --morning-border: #2878C7;
+      --afternoon: #FFFFFF;
+      --afternoon-border: #218657;
+      --night: #FFFFFF;
+      --night-border: #A3282A;
+      --shadow: 0 8px 30px rgba(24, 47, 40, .07);
+      --radius: 16px;
+    }
+
+    body {
+      font-family: "Source Sans 3", Frutiger, "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(23, 118, 73, .07), transparent 24rem),
+        linear-gradient(180deg, #FFFFFF 0, var(--page) 24rem);
+    }
+
+    .page { width: min(1320px, calc(100% - 40px)); }
+
+    .hero {
+      padding: 0;
+      background: rgba(255,255,255,.96);
+      border-top: 5px solid var(--una-red);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 4px 18px rgba(31, 50, 44, .04);
+    }
+
+    .brand-row { min-height: 124px; flex-wrap: nowrap; }
+    .identity-lockup, .institutional-lockup { display:flex; align-items:center; gap: 22px; }
+    .identity-lockup { min-width: 0; }
+    .institutional-lockup { margin-left:auto; }
+    .logo-link { display:flex; align-items:center; justify-content:center; flex: 0 0 auto; }
+    .logo-edeca { width: 94px; height: 94px; }
+    .logo-edeca img { width:100%; height:100%; object-fit:contain; }
+    .logo-una { width: 106px; height: 92px; }
+    .logo-una img { width:100%; height:100%; object-fit:contain; }
+    .brand-divider { width:1px; height:68px; background:var(--line); }
+    .identity-copy { min-width:0; }
+    .identity-copy span { display:block; color:var(--muted); font-size:13px; font-weight:600; }
+    .identity-copy strong { display:block; margin-top:2px; color:var(--ink); font-size:clamp(25px,3.2vw,38px); line-height:1; letter-spacing:-.025em; }
+    .report-meta { color:var(--una-gray); font-size:13px; line-height:1.5; text-align:right; }
+    .report-meta strong { display:block; color:var(--una-red-dark); font-size:14px; }
+
+    .intro { grid-template-columns:minmax(0,1fr) auto; gap:24px; padding:36px 0 24px; }
+    .lead { padding:4px 0; border:0; background:transparent; box-shadow:none; }
+    .lead h1 { max-width:790px; margin-bottom:10px; color:var(--ink); font-size:clamp(31px,4.5vw,54px); letter-spacing:-.045em; }
+    .lead p { font-size:16px; max-width:68ch; }
+    .stats { align-self:center; min-width:380px; padding:8px; gap:0; border:1px solid var(--line); box-shadow:none; }
+    .stat { min-width:120px; padding:15px 18px; border:0; border-radius:0; background:transparent; }
+    .stat + .stat { border-left:1px solid var(--line); }
+    .stat strong { color:var(--una-red-dark); font-size:27px; }
+    .stat span { letter-spacing:.09em; }
+
+    .toolbar {
+      top:12px; padding:15px 18px; margin-bottom:24px;
+      border:1px solid var(--line); border-left:4px solid var(--una-blue);
+      border-radius:14px; box-shadow:var(--shadow);
+    }
+    label { color:var(--una-gray); }
+    select, input { height:44px; border-color:#CBD5D1; border-radius:10px; font-family:inherit; }
+    select:focus, input:focus { border-color:var(--una-blue); box-shadow:0 0 0 3px rgba(3,73,145,.14); }
+    #searchInput { min-width:330px; }
+    .legend { gap:14px; }
+    .legend-item { color:var(--una-gray); font-size:12px; font-weight:600; }
+    .dot { width:10px; height:10px; border-radius:99px; }
+
+    .aula-section { margin-bottom:22px; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .aula-head { padding:17px 20px; background:#fff; }
+    .aula-head h2 { color:var(--ink); font-size:21px; letter-spacing:-.01em; }
+    .aula-head h2::before { content:""; display:inline-block; width:9px; height:9px; margin-right:10px; border-radius:99px; background:var(--edeca-green); vertical-align:2px; }
+    .aula-head span { font-weight:600; }
+    .schedule th { background:#F7F9F8; color:var(--una-gray); padding:13px 12px; letter-spacing:.08em; }
+    .schedule td { padding:9px; background:#FBFCFB; }
+    .turno-cell { width:114px; color:var(--ink); border-left:4px solid transparent; }
+    .turno-morning { background:#F3F7FC !important; color:#1F5D99; border-left-color:var(--morning-border); }
+    .turno-afternoon { background:#F2F8F4 !important; color:#17623F; border-left-color:var(--afternoon-border); }
+    .turno-night { background:#FAF4F4 !important; color:#852326; border-left-color:var(--night-border); }
+    .turno-cell .small { line-height:1.35; }
+
+    .event-card { min-height:72px; padding:11px 12px; border:1px solid #D8E0DD; border-left:4px solid; border-radius:10px; box-shadow:none; }
+    .event-card:hover, .event-card:focus { transform:translateY(-1px); border-color:#AEBBB6; box-shadow:0 8px 20px rgba(30,57,48,.10); }
+    .event-card.morning { background:var(--morning); border-left-color:var(--morning-border); }
+    .event-card.afternoon { background:var(--afternoon); border-left-color:var(--afternoon-border); }
+    .event-card.night { background:var(--night); border-left-color:var(--night-border); }
+    .profesor { color:var(--ink); font-size:13px; }
+    .event-card .time { color:var(--una-gray); }
+    .event-card .code { margin-top:8px; padding:2px 0; background:transparent; color:var(--una-blue); letter-spacing:.04em; }
+    .free-slot { height:72px; color:transparent; background:none; background-image:none; border:1px dashed #D7DFDC; }
+    .free-slot::after { content:"Libre"; color:#A2ADA9; font-size:11px; font-weight:600; letter-spacing:.05em; }
+
+    .table-panel { border:1px solid var(--line); box-shadow:none; }
+    details summary { color:var(--una-blue); }
+    .footer { margin-top:20px; padding:24px 0 42px; border-top:1px solid var(--line); }
+    .footer strong { color:var(--una-red-dark); }
+
+    @media (max-width: 900px) {
+      .brand-row { min-height:auto; padding:18px 0; align-items:flex-start; }
+      .institutional-lockup { gap:14px; }
+      .report-meta { display:none; }
+      .intro { grid-template-columns:1fr; padding-top:28px; }
+      .stats { min-width:0; width:100%; }
+      .toolbar { top:0; }
+    }
+    @media (max-width: 640px) {
+      .page { width:min(100% - 24px,1320px); }
+      .brand-row { flex-direction:column-reverse; gap:12px; }
+      .institutional-lockup { align-self:flex-end; }
+      .brand-divider { display:none; }
+      .logo-una { width:88px; height:72px; }
+      .logo-edeca { width:76px; height:76px; }
+      .identity-lockup { gap:14px; }
+      .identity-copy strong { font-size:25px; }
+      .lead h1 { font-size:36px; }
+      .stats { grid-template-columns:repeat(3,1fr); }
+      .stat { min-width:0; padding:12px 8px; text-align:center; }
+      .stat strong { font-size:23px; }
+      .stat span { font-size:10px; }
+      #searchInput { min-width:0; }
+    }
+  </style>
 </head>
 <body>
   <header class="hero">
     <div class="page brand-row">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">UNA</div>
-        <div class="brand-text">
-          <span>Universidad Nacional · EDECA</span>
+      <div class="identity-lockup">
+        <a class="logo-link logo-edeca" href="#title" aria-label="Escuela de Ciencias Ambientales">
+          <img src="logo-edeca.png" alt="Logo de la Escuela de Ciencias Ambientales" />
+        </a>
+        <div class="identity-copy">
+          <span>Escuela de Ciencias Ambientales</span>
           <strong>Ocupación de aulas</strong>
         </div>
       </div>
-      <div class="meta-pill">Periodo <b>202620</b> · Reporte base 10/07/2026</div>
+      <div class="institutional-lockup">
+        <div class="report-meta"><strong>Periodo 202620</strong>Reporte base 10/07/2026</div>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <a class="logo-link logo-una" href="https://www.una.ac.cr/" target="_blank" rel="noopener" aria-label="Universidad Nacional, Costa Rica">
+          <img src="logo-una.png" alt="Universidad Nacional, Costa Rica" />
+        </a>
+      </div>
     </div>
   </header>
 
   <main class="page">
     <section class="intro" aria-labelledby="title">
       <div class="panel lead">
-        <h1 id="title">Horario institucional por aula, jornada y día</h1>
-        <p>Visualización web para consulta rápida de disponibilidad y ocupación. Al posicionarse sobre cada profesor se muestra el código, el nombre del curso, el NRC, el grupo y el horario correspondiente.</p>
+        <h1 id="title">Disponibilidad de aulas</h1>
+        <p>Consulta la ocupación por aula, jornada y día. Selecciona cualquier clase para ver el curso, NRC, grupo y detalle del horario.</p>
       </div>
       <div class="panel stats" aria-label="Resumen del horario">
         <div class="stat"><strong id="stat-aulas">7</strong><span>Aulas</span></div>
@@ -983,7 +1128,6 @@
     }
 
     updateRecord('ev032', { hora: '13:00-16:00', hora_raw: '1300-1600', dia: 'LUNES', profesor: 'JOSE CASTRO SOLIS' });
-    cloneRecord('ev032', 'pdf051', { dia: 'MIÉRCOLES', profesor: 'ROY CRUZ MORALES' });
     updateRecord('ev036', { hora: '16:31-19:00', hora_raw: '1631-1900' });
 
     cloneRecord('ev007', 'pdf052', { dia: 'MIÉRCOLES' });
