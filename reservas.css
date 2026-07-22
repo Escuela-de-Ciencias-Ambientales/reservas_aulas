@@ -261,7 +261,7 @@
 
 .account-strip > div:first-child { display: grid; gap: 2px; }
 .account-strip span:not(.role-badge) { color: var(--reserve-muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.account-strip strong { color: var(--reserve-ink); font-size: 17px; }
+.account-strip > strong { color: var(--reserve-ink); font-size: 18px; }
 .account-actions { gap: 10px; }
 
 .text-button { padding: 8px 10px; color: var(--reserve-red); background: transparent; font-size: 13px; font-weight: 800; }
@@ -344,6 +344,44 @@
 .board-filters select { width: 120px; }
 .public-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
+.availability-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.availability-room {
+  padding: 16px;
+  border: 1px solid var(--reserve-line);
+  border-radius: 14px;
+  background: #fbfcfc;
+}
+
+.availability-room h3 {
+  margin: 0 0 12px;
+  color: var(--reserve-ink);
+  font-size: 17px;
+}
+
+.availability-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.availability-slot {
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.availability-slot.is-free { color: #096344; background: #e5f6ee; }
+.availability-slot.is-busy { color: #8f2730; background: #fff0f1; }
+.reservation-detail-title { margin: 26px 0 0; color: var(--reserve-ink); font-size: 18px; }
+.account-limit-note { margin: -5px 0 12px; }
+
 .reservation-item .room-pill {
   display: inline-grid;
   min-width: 62px;
@@ -373,6 +411,7 @@
   .booking-grid,
   .admin-grid { grid-template-columns: 1fr; }
   .public-list { grid-template-columns: 1fr; }
+  .availability-board { grid-template-columns: 1fr; }
   .schedule-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
 }
 
