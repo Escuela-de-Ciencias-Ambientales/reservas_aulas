@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Horario de ocupación de aulas | EDECA</title>
-  <meta name="description" content="Horario de ocupación de aulas por jornada, día y aula. Periodo 202620." />
+  <meta name="description" content="Horario de ocupación de aulas por jornada, día y aula. II Ciclo 2026." />
   <style>
     :root {
       --una-blue: #003C71;
@@ -329,7 +329,7 @@
         </div>
       </div>
       <div class="institutional-lockup">
-        <div class="report-meta"><strong>Periodo 202620</strong>Reporte base 10/07/2026</div>
+        <div class="report-meta"><strong>Periodo II Ciclo 2026</strong>Reporte base 10/07/2026</div>
         <span class="brand-divider" aria-hidden="true"></span>
         <a class="logo-link logo-una" href="https://www.una.ac.cr/" target="_blank" rel="noopener" aria-label="Universidad Nacional, Costa Rica">
           <img src="logo-una.png" alt="Universidad Nacional, Costa Rica" />
@@ -1140,16 +1140,12 @@
     cloneRecord('ev015', 'pdf054', { dia: 'SÁBADO', profesor: 'MARIA GAMBOA JIMENEZ' });
     updateRecord('ev040', { profesor: 'PRISCILLA RIGG AGUILAR' });
     updateRecord('ev018', { profesor: 'KARLA VETRANI CHAVARRIA / MARIA CHAVES VILLALOBOS' });
-    cloneRecord('ev010', 'pdf055', { dia: 'LUNES', profesor: 'VICTOR MEZA PICADO' });
     updateRecord('ev013', { profesor: 'MANFRED MURRELL BLANCO / ALINA AGUILAR ARGUEDAS' });
-    cloneRecord('ev013', 'pdf056', { dia: 'MIÉRCOLES', profesor: 'SHERRYL CAMPOS MORALES' });
     DATA.push({ id: 'pdf057', aula: '708', aula_original: '0708', hora: '17:00-18:40', hora_raw: '1700-1840', turno: 'Noche', dia: 'LUNES', profesor: 'KRISTEL CASTILLO VEGA', codigo: 'MAT002', curso: 'CURSO NO INDICADO EN EL PDF', nrc: '53688', grupo: '24' });
     DATA.push({ id: 'pdf058', aula: '708', aula_original: '0708', hora: '17:00-19:30', hora_raw: '1700-1930', turno: 'Noche', dia: 'MIÉRCOLES', profesor: 'KRISTEL CASTILLO VEGA', codigo: 'MAT002', curso: 'CURSO NO INDICADO EN EL PDF', nrc: '53688', grupo: '24' });
 
-    cloneRecord('ev003', 'pdf059', { dia: 'VIERNES', profesor: 'ERNESTO MONTERO SANCHEZ' });
     updateRecord('ev004', { profesor: 'JESUS UGALDE GOMEZ / FEDERICO ALICE GUIER' });
     updateRecord('ev031', { hora: '13:00-16:00', hora_raw: '1300-1600' });
-    cloneRecord('ev031', 'pdf060', { dia: 'JUEVES', profesor: 'JESUS UGALDE GOMEZ' });
     DATA.push({ id: 'pdf061', aula: '709', aula_original: '0709', hora: '14:00-16:30', hora_raw: '1400-1630', turno: 'Tarde', dia: 'JUEVES', profesor: 'VICTOR GRANADOS FERNANDEZ', codigo: 'FIY512', curso: 'CURSO NO INDICADO EN EL PDF', nrc: '53299', grupo: '01' });
 
     updateRecord('ev025', { aula: '710', aula_original: '0710', hora: '08:00-11:00', hora_raw: '0800-1100', turno: 'Mañana', dia: 'MIÉRCOLES' });
@@ -1157,13 +1153,16 @@
     updateRecord('ev037', { aula: '710', aula_original: '0710', dia: 'MARTES' });
     updateRecord('ev024', { hora: '16:30-19:30', hora_raw: '1630-1930', turno: 'Noche' });
     updateRecord('ev026', { profesor: 'MARIA CHAVES VILLALOBOS / LAURA LEANDRO ZUÑIGA' });
-    addUnspecifiedRecord({ id: 'pdf062', aula: '710', aulaOriginal: '0710', hora: '08:00-12:00', horaRaw: '0800-1200', turno: 'Mañana', dia: 'MARTES', profesor: 'ALINA AGUILAR ARGUEDAS' });
-    addUnspecifiedRecord({ id: 'pdf063', aula: '710', aulaOriginal: '0710', hora: '08:00-12:00', horaRaw: '0800-1200', turno: 'Mañana', dia: 'MIÉRCOLES', profesor: 'ALBERT MORERA BEITA' });
     addUnspecifiedRecord({ id: 'pdf064', aula: '710', aulaOriginal: '0710', hora: '08:00-12:00', horaRaw: '0800-1200', turno: 'Mañana', dia: 'VIERNES', profesor: 'VANESSA VALERIO HERNANDEZ' });
     updateRecord('ev050', { profesor: 'MARIA ALVAREZ JIMENEZ / DAMIAN SANCHEZ RODRIGUEZ' });
 
     updateRecord('ev006', { profesor: 'SHERRYL CAMPOS MORALES / RONNY VILLALOBOS CHACON' });
     updateRecord('ev043', { hora: '17:01-18:40', hora_raw: '1701-1840', turno: 'Noche' });
+
+    // Ocupaciones reservadas para USAC. No incluyen profesor ni datos académicos.
+    DATA.push({ id: 'usac001', aula: '708', aula_original: '0708', hora: '08:00-12:00', hora_raw: '0800-1200', turno: 'Mañana', dia: 'MIÉRCOLES', profesor: 'USAC', codigo: '', curso: '', nrc: '', grupo: '', simple: true });
+    DATA.push({ id: 'usac002', aula: '710', aula_original: '0710', hora: '08:00-12:00', hora_raw: '0800-1200', turno: 'Mañana', dia: 'MIÉRCOLES', profesor: 'USAC', codigo: '', curso: '', nrc: '', grupo: '', simple: true });
+    DATA.push({ id: 'usac003', aula: '709', aula_original: '0709', hora: '13:00-16:00', hora_raw: '1300-1600', turno: 'Tarde', dia: 'MARTES', profesor: 'USAC', codigo: '', curso: '', nrc: '', grupo: '', simple: true });
 
     const DAYS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const TURNS = ['Mañana', 'Tarde', 'Noche'];
@@ -1226,13 +1225,15 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.className = `event-card ${turnClass(record.turno)}`;
-      button.setAttribute('aria-label', `${record.profesor}. ${record.codigo}, ${record.curso}, ${record.hora}`);
+      button.setAttribute('aria-label', record.simple ? 'USAC' : `${record.profesor}. ${record.codigo}, ${record.curso}, ${record.hora}`);
       button.dataset.record = JSON.stringify(record);
-      button.innerHTML = `
-        <span class="profesor">${escapeHtml(record.profesor)}</span>
-        <span class="time">${escapeHtml(record.hora)}</span><br />
-        <span class="code">${escapeHtml(record.codigo)}</span>
-      `;
+      button.innerHTML = record.simple
+        ? '<span class="profesor">USAC</span>'
+        : `
+          <span class="profesor">${escapeHtml(record.profesor)}</span>
+          <span class="time">${escapeHtml(record.hora)}</span><br />
+          <span class="code">${escapeHtml(record.codigo)}</span>
+        `;
       button.addEventListener('mouseenter', showTooltip);
       button.addEventListener('mousemove', moveTooltip);
       button.addEventListener('mouseleave', hideTooltip);
@@ -1311,6 +1312,7 @@
     }
 
     function tooltipHtml(record) {
+      if (record.simple) return '<h3>USAC</h3>';
       return `
         <h3>${escapeHtml(record.profesor)}</h3>
         <div class="grid">
