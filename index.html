@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Horario de ocupación de aulas | EDECA</title>
-  <meta name="description" content="Horario de ocupación de aulas por jornada, día y aula. II Ciclo 2026." />
+  <title>Reservas de aulas | EDECA</title>
+  <meta name="description" content="Sistema de consulta y reserva de aulas para el personal docente de la Escuela de Ciencias Ambientales." />
   <style>
     :root {
       --una-blue: #003C71;
@@ -178,6 +178,7 @@
       .legend { gap: 8px; }
     }
   </style>
+  <link rel="stylesheet" href="reservas.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -329,6 +330,7 @@
         </div>
       </div>
       <div class="institutional-lockup">
+        <button class="session-button" id="sessionButton" type="button">Ingreso docente</button>
         <div class="report-meta"><strong>Periodo: II Ciclo 2026</strong>Reporte base 10/07/2026</div>
         <span class="brand-divider" aria-hidden="true"></span>
         <a class="logo-link logo-una" href="https://www.una.ac.cr/" target="_blank" rel="noopener" aria-label="Universidad Nacional, Costa Rica">
@@ -341,8 +343,9 @@
   <main class="page">
     <section class="intro" aria-labelledby="title">
       <div class="panel lead">
-        <h1 id="title">Disponibilidad de aulas</h1>
-        <p>Consulta la ocupación por aula, jornada y día. Selecciona cualquier clase para ver el curso, NRC, grupo y detalle del horario.</p>
+        <p class="eyebrow">Reservas EDECA</p>
+        <h1 id="title">Consulta y reserva de aulas</h1>
+        <p>Revisa la disponibilidad académica y reserva un espacio en pocos pasos. El acceso para crear reservas es exclusivo del personal docente autorizado.</p>
       </div>
       <div class="panel stats" aria-label="Resumen del horario">
         <div class="stat"><strong id="stat-aulas">7</strong><span>Aulas</span></div>
@@ -350,6 +353,137 @@
         <div class="stat"><strong id="stat-dias">0</strong><span>Días lectivos</span></div>
       </div>
     </section>
+
+    <section class="reservation-portal panel" id="reservationPortal" aria-labelledby="reservationTitle">
+      <div class="portal-heading">
+        <div>
+          <p class="eyebrow">Gestión rápida</p>
+          <h2 id="reservationTitle">Reservar un aula</h2>
+          <p>Ingresa con tu cuenta institucional, selecciona la fecha y confirma un horario disponible.</p>
+        </div>
+        <span class="connection-status" id="connectionStatus">Preparando conexión…</span>
+      </div>
+
+      <div class="system-message" id="systemMessage" role="status" aria-live="polite" hidden></div>
+
+      <div class="guest-view" id="guestView">
+        <form class="login-card" id="loginForm">
+          <div class="form-heading">
+            <span class="step-number">01</span>
+            <div><strong>Ingreso docente</strong><span>Usa el correo y la clave asignados.</span></div>
+          </div>
+          <label for="loginEmail">Correo electrónico</label>
+          <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="nombre@una.cr" required />
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="8" required />
+          <button class="primary-button" type="submit">Ingresar</button>
+          <p class="form-note">Las cuentas son creadas por la administración de la Escuela.</p>
+        </form>
+        <div class="access-summary">
+          <span class="step-number">02</span>
+          <h3>Reserva sin complicaciones</h3>
+          <ol>
+            <li>Selecciona fecha, aula y horario.</li>
+            <li>Indica brevemente la actividad.</li>
+            <li>Confirma y la reserva aparecerá de inmediato.</li>
+          </ol>
+          <p>El sistema bloquea automáticamente cualquier cruce con clases o reservas existentes.</p>
+        </div>
+      </div>
+
+      <div class="user-view" id="userView" hidden>
+        <div class="account-strip">
+          <div><span>Sesión activa</span><strong id="currentUserName">Docente</strong></div>
+          <div class="account-actions">
+            <span class="role-badge" id="currentUserRole">Docente</span>
+            <button class="text-button" id="logoutButton" type="button">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <div class="booking-grid">
+          <form class="booking-form" id="bookingForm">
+            <div class="form-heading">
+              <span class="step-number">01</span>
+              <div><strong>Nueva reserva</strong><span>Todos los campos son obligatorios.</span></div>
+            </div>
+            <div class="field-grid">
+              <div>
+                <label for="bookingDate">Fecha</label>
+                <input id="bookingDate" name="date" type="date" required />
+              </div>
+              <div>
+                <label for="bookingRoom">Aula</label>
+                <select id="bookingRoom" name="room" required></select>
+              </div>
+              <div>
+                <label for="bookingStart">Hora de inicio</label>
+                <input id="bookingStart" name="start" type="time" min="07:00" max="21:00" step="1800" required />
+              </div>
+              <div>
+                <label for="bookingEnd">Hora de finalización</label>
+                <input id="bookingEnd" name="end" type="time" min="07:30" max="21:30" step="1800" required />
+              </div>
+            </div>
+            <label for="bookingActivity">Actividad</label>
+            <input id="bookingActivity" name="activity" type="text" maxlength="120" placeholder="Ej.: Reunión de proyecto" required />
+            <div class="availability-check" id="availabilityCheck">Selecciona la fecha y el horario para comprobar disponibilidad.</div>
+            <button class="primary-button" id="saveBookingButton" type="submit">Guardar reserva</button>
+          </form>
+
+          <section class="my-bookings" aria-labelledby="myBookingsTitle">
+            <div class="section-heading">
+              <div><p class="eyebrow">Tu agenda</p><h3 id="myBookingsTitle">Mis próximas reservas</h3></div>
+              <button class="icon-button" id="refreshButton" type="button" aria-label="Actualizar reservas">↻</button>
+            </div>
+            <div class="booking-list" id="myBookingsList"><p class="empty-state">No tienes reservas próximas.</p></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="reservation-board panel" aria-labelledby="boardTitle">
+      <div class="section-heading board-heading">
+        <div><p class="eyebrow">Actualización inmediata</p><h2 id="boardTitle">Reservas registradas</h2></div>
+        <div class="board-filters">
+          <label for="boardDate">Fecha</label>
+          <input id="boardDate" type="date" />
+          <label for="boardRoom">Aula</label>
+          <select id="boardRoom"><option value="TODAS">Todas</option></select>
+        </div>
+      </div>
+      <div class="reservation-list public-list" id="publicReservationsList">
+        <p class="empty-state">No hay reservas registradas para esta fecha.</p>
+      </div>
+    </section>
+
+    <section class="admin-panel panel" id="adminPanel" aria-labelledby="adminTitle" hidden>
+      <div class="section-heading">
+        <div><p class="eyebrow">Acceso maestro</p><h2 id="adminTitle">Administración</h2></div>
+      </div>
+      <div class="admin-grid">
+        <form class="admin-form" id="createUserForm">
+          <h3>Crear cuenta docente</h3>
+          <label for="newUserName">Nombre completo</label>
+          <input id="newUserName" name="name" maxlength="100" required />
+          <label for="newUserEmail">Correo electrónico</label>
+          <input id="newUserEmail" name="email" type="email" required />
+          <label for="newUserPassword">Contraseña temporal</label>
+          <input id="newUserPassword" name="password" type="password" minlength="8" required />
+          <label for="newUserRole">Tipo de acceso</label>
+          <select id="newUserRole" name="role"><option value="teacher">Docente</option><option value="admin">Administrador</option></select>
+          <button class="primary-button" type="submit">Crear cuenta</button>
+        </form>
+        <section>
+          <h3>Reservas activas</h3>
+          <div class="booking-list" id="adminBookingsList"><p class="empty-state">No hay reservas activas.</p></div>
+        </section>
+      </div>
+    </section>
+
+    <div class="schedule-heading">
+      <div><p class="eyebrow">Referencia académica</p><h2>Horario fijo de ocupación</h2></div>
+      <p>Estas clases bloquean automáticamente los espacios correspondientes al crear una reserva.</p>
+    </div>
 
     <section class="toolbar" aria-label="Filtros de visualización">
       <div class="filters">
@@ -1325,5 +1459,8 @@
 
     renderSchedules();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="reservas.js"></script>
 </body>
 </html>
