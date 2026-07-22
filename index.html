@@ -233,7 +233,7 @@
     .logo-una img { width:100%; height:100%; object-fit:contain; }
     .brand-divider { width:1px; height:68px; background:var(--line); }
     .identity-copy { min-width:0; }
-    .identity-copy span { display:block; color:var(--muted); font-size:13px; font-weight:600; }
+    .identity-copy span { display:block; color:var(--ink); font-size:clamp(18px,1.8vw,24px); font-weight:700; line-height:1.15; letter-spacing:-.015em; }
     .identity-copy strong { display:block; margin-top:2px; color:var(--ink); font-size:clamp(25px,3.2vw,38px); line-height:1; letter-spacing:-.025em; }
     .report-meta { color:var(--una-gray); font-size:13px; line-height:1.5; text-align:right; }
     .report-meta strong { display:block; color:var(--una-red-dark); font-size:14px; }
@@ -306,6 +306,7 @@
       .logo-una { width:88px; height:72px; }
       .logo-edeca { width:76px; height:76px; }
       .identity-lockup { gap:14px; }
+      .identity-copy span { font-size:18px; }
       .identity-copy strong { font-size:25px; }
       .lead h1 { font-size:36px; }
       .stats { grid-template-columns:repeat(3,1fr); }
