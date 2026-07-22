@@ -52,21 +52,27 @@ Deno.serve(async (request) => {
     const role = payload.role === 'admin' ? 'admin' : 'teacher';
 
     if (fullName.length < 3 || fullName.length > 100) return response({ ok: false, error: 'El nombre no es válido.' }, 400);
-    if (!email.includes('@')) return response({ ok: false, error: 'El correo no es válido.' }, 400);
+    if (!/^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr$/.test(email)) {
+      return response({ ok: false, error: 'El correo debe tener el formato nombre.apellido.apellido@una.cr.' }, 400);
+    }
     if (password.length < 8) return response({ ok: false, error: 'La contraseña debe tener al menos 8 caracteres.' }, 400);
+
+    if (role === 'teacher') {
+      const { count, error: countError } = await adminClient
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'teacher');
+      if (countError) return response({ ok: false, error: countError.message }, 400);
+      if ((count || 0) >= 50) return response({ ok: false, error: 'Se alcanzó el máximo de 50 cuentas docentes.' }, 409);
+    }
 
     const { data: created, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: fullName }
+      user_metadata: { full_name: fullName, role }
     });
     if (createError) return response({ ok: false, error: createError.message }, 400);
-
-    if (role === 'admin' && created.user) {
-      const { error: roleError } = await adminClient.from('profiles').update({ role: 'admin' }).eq('id', created.user.id);
-      if (roleError) return response({ ok: false, error: roleError.message }, 400);
-    }
 
     return response({ ok: true, userId: created.user?.id });
   } catch (error) {

@@ -1,11 +1,12 @@
 # Reservas de aulas · EDECA
 
-Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambientales de la Universidad Nacional. Está pensado para aproximadamente 35 docentes y conserva como referencia el horario académico del II Ciclo 2026.
+Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambientales de la Universidad Nacional. Admite hasta 50 cuentas docentes y conserva como referencia el horario académico del II Ciclo 2026.
 
 ## Funciones incluidas
 
 - Consulta pública del horario académico fijo.
 - Consulta pública de las reservas registradas por fecha y aula.
+- Vista diaria de tramos disponibles y ocupados para cada aula.
 - Inicio de sesión individual con correo y contraseña.
 - Creación de reservas por fecha, aula, hora de inicio, hora de finalización y actividad.
 - Bloqueo de cruces con clases fijas y con otras reservas.
@@ -14,6 +15,7 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Creación de cuentas docentes y administrativas desde el panel maestro.
 - Diseño adaptable para computadora, tableta y teléfono.
 - Registro de cancelaciones y reglas de seguridad en la base de datos.
+- Reservas habilitadas hasta el 20 de diciembre de 2026.
 
 ## Estructura
 
@@ -43,11 +45,11 @@ La clave `anon` de Supabase está diseñada para utilizarse en el navegador. La 
 
 ## Flujo de cuentas
 
-La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear las cuentas de los docentes desde la propia página. Cada profesor accede con su correo y una contraseña única.
+La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear las cuentas de los docentes desde la propia página. Cada profesor accede con una contraseña única y un correo con el formato `nombre.apellido.apellido@una.cr`. Su perfil visible muestra únicamente su nombre.
 
 ## Seguridad
 
-La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. El administrador puede gestionar todas. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Un disparador adicional bloquea cruces con el horario académico fijo.
+La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. El administrador puede gestionar todas. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Un disparador adicional bloquea cruces con el horario académico fijo y otro impide superar las 50 cuentas docentes.
 
 ## Desarrollo local
 

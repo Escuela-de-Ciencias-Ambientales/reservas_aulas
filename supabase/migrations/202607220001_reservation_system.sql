@@ -5,7 +5,7 @@ create type public.reservation_status as enum ('active', 'cancelled');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  email text not null unique,
+  email text not null unique check (email ~ '^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr$'),
   full_name text not null check (char_length(trim(full_name)) between 3 and 100),
   role public.user_role not null default 'teacher',
   active boolean not null default true,
@@ -46,7 +46,7 @@ create table public.reservations (
   cancelled_at timestamptz,
   check (start_time < end_time),
   check (start_time >= time '07:00' and end_time <= time '21:30'),
-  check (reservation_date between date '2026-07-20' and date '2026-11-14'),
+  check (reservation_date between date '2026-07-20' and date '2026-12-20'),
   exclude using gist (
     classroom_id with =,
     tsrange(reservation_date + start_time, reservation_date + end_time, '[)') with &&
@@ -86,6 +86,28 @@ create trigger reservations_set_updated_at
 before update on public.reservations
 for each row execute function public.set_updated_at();
 
+create or replace function public.enforce_teacher_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.role = 'teacher' then
+    if tg_op = 'INSERT' and (select count(*) from public.profiles where role = 'teacher') >= 50 then
+      raise exception using errcode = '23514', message = 'Se alcanzó el máximo de 50 cuentas docentes';
+    elsif tg_op = 'UPDATE' and old.role <> 'teacher' and (select count(*) from public.profiles where role = 'teacher') >= 50 then
+      raise exception using errcode = '23514', message = 'Se alcanzó el máximo de 50 cuentas docentes';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profiles_enforce_teacher_limit
+before insert or update of role on public.profiles
+for each row execute function public.enforce_teacher_limit();
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -93,11 +115,12 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, full_name)
+  insert into public.profiles (id, email, full_name, role)
   values (
     new.id,
-    coalesce(new.email, ''),
-    coalesce(nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''), split_part(coalesce(new.email, 'Docente'), '@', 1))
+    lower(coalesce(new.email, '')),
+    coalesce(nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''), split_part(coalesce(new.email, 'Docente'), '@', 1)),
+    case when new.raw_user_meta_data ->> 'role' = 'admin' then 'admin'::public.user_role else 'teacher'::public.user_role end
   );
   return new;
 end;
@@ -127,6 +150,7 @@ begin
   select fixed.label into fixed_label
   from public.fixed_occupancies fixed
   where fixed.classroom_id = new.classroom_id
+    and new.reservation_date <= date '2026-11-14'
     and fixed.day_of_week = extract(dow from new.reservation_date)::integer
     and new.start_time < fixed.end_time
     and new.end_time > fixed.start_time

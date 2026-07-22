@@ -4,7 +4,8 @@
   const config = window.RESERVAS_CONFIG || {};
   const isConfigured = Boolean(config.supabaseUrl && config.supabaseAnonKey);
   const cycleStart = config.cycleStart || '2026-07-20';
-  const cycleEnd = config.cycleEnd || '2026-11-14';
+  const cycleEnd = config.cycleEnd || '2026-12-20';
+  const academicScheduleEnd = config.academicScheduleEnd || '2026-11-14';
   const roomCodes = typeof AULAS !== 'undefined' ? AULAS : ['L601', 'L602', 'L603', '708', '709', '710', '711'];
   const baseSchedule = typeof DATA !== 'undefined' ? DATA : [];
   const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
@@ -22,7 +23,6 @@
     loginPassword: document.getElementById('loginPassword'),
     logoutButton: document.getElementById('logoutButton'),
     currentUserName: document.getElementById('currentUserName'),
-    currentUserRole: document.getElementById('currentUserRole'),
     bookingForm: document.getElementById('bookingForm'),
     bookingDate: document.getElementById('bookingDate'),
     bookingRoom: document.getElementById('bookingRoom'),
@@ -35,6 +35,7 @@
     myBookingsList: document.getElementById('myBookingsList'),
     boardDate: document.getElementById('boardDate'),
     boardRoom: document.getElementById('boardRoom'),
+    availabilityBoard: document.getElementById('availabilityBoard'),
     publicReservationsList: document.getElementById('publicReservationsList'),
     adminPanel: document.getElementById('adminPanel'),
     createUserForm: document.getElementById('createUserForm'),
@@ -107,6 +108,7 @@
   }
 
   function baseConflict(roomCode, date, start, end) {
+    if (date > academicScheduleEnd) return null;
     const selectedDay = dayName(date);
     return baseSchedule.find((record) =>
       record.aula === roomCode &&
@@ -185,6 +187,73 @@
       </article>`;
   }
 
+  function timeToMinutes(time) {
+    const [hours, minutes] = normalizeTime(time).split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  function minutesToTime(minutes) {
+    return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  }
+
+  function occupiedIntervals(roomCode, selectedDate) {
+    const selectedDay = dayName(selectedDate);
+    const fixed = selectedDate <= academicScheduleEnd
+      ? baseSchedule
+          .filter((record) => record.aula === roomCode && record.dia === selectedDay)
+          .map((record) => ({ start: timeToMinutes(record.hora.slice(0, 5)), end: timeToMinutes(record.hora.slice(-5)), label: record.simple ? 'USAC' : record.curso }))
+      : [];
+    const reservations = state.reservations
+      .filter((item) => item.status === 'active' && item.reservation_date === selectedDate && item.classrooms?.code === roomCode)
+      .map((item) => ({ start: timeToMinutes(item.start_time), end: timeToMinutes(item.end_time), label: item.activity }));
+    return [...fixed, ...reservations].sort((a, b) => a.start - b.start || a.end - b.end);
+  }
+
+  function timelineForRoom(roomCode, selectedDate) {
+    const opening = 7 * 60;
+    const closing = 21 * 60 + 30;
+    const occupied = occupiedIntervals(roomCode, selectedDate);
+    const merged = [];
+    occupied.forEach((slot) => {
+      const start = Math.max(opening, slot.start);
+      const end = Math.min(closing, slot.end);
+      if (end <= opening || start >= closing) return;
+      const previous = merged[merged.length - 1];
+      if (previous && start <= previous.end) {
+        previous.end = Math.max(previous.end, end);
+        previous.labels.push(slot.label);
+      } else {
+        merged.push({ start, end, labels: [slot.label] });
+      }
+    });
+
+    const timeline = [];
+    let cursor = opening;
+    merged.forEach((slot) => {
+      if (cursor < slot.start) timeline.push({ start: cursor, end: slot.start, free: true, label: 'Disponible' });
+      timeline.push({ start: slot.start, end: slot.end, free: false, label: [...new Set(slot.labels)].join(' · ') });
+      cursor = Math.max(cursor, slot.end);
+    });
+    if (cursor < closing) timeline.push({ start: cursor, end: closing, free: true, label: 'Disponible' });
+    return timeline;
+  }
+
+  function renderAvailability() {
+    const selectedDate = elements.boardDate.value;
+    const selectedRoom = elements.boardRoom.value;
+    const rooms = selectedRoom === 'TODAS' ? state.rooms : state.rooms.filter((room) => room.code === selectedRoom);
+    elements.availabilityBoard.innerHTML = rooms.map((room) => {
+      const slots = timelineForRoom(room.code, selectedDate);
+      return `
+        <article class="availability-room">
+          <h3>Aula ${escapeHtml(room.code)}</h3>
+          <div class="availability-slots">
+            ${slots.map((slot) => `<span class="availability-slot ${slot.free ? 'is-free' : 'is-busy'}" title="${escapeHtml(slot.label)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · ${slot.free ? 'Disponible' : 'Ocupado'}</span>`).join('')}
+          </div>
+        </article>`;
+    }).join('');
+  }
+
   function renderPublicReservations() {
     const selectedDate = elements.boardDate.value;
     const selectedRoom = elements.boardRoom.value;
@@ -194,6 +263,7 @@
     elements.publicReservationsList.innerHTML = reservations.length
       ? reservations.map((item) => reservationCard(item, false)).join('')
       : '<p class="empty-state">No hay reservas registradas para esta fecha.</p>';
+    renderAvailability();
   }
 
   function renderMyReservations() {
@@ -226,7 +296,6 @@
     elements.sessionButton.textContent = loggedIn ? state.profile.full_name : 'Ingreso docente';
     if (!loggedIn) return;
     elements.currentUserName.textContent = state.profile.full_name;
-    elements.currentUserRole.textContent = state.profile.role === 'admin' ? 'Administrador' : 'Docente';
     renderMyReservations();
     renderAdminReservations();
   }
@@ -371,11 +440,17 @@
     const button = elements.createUserForm.querySelector('button[type="submit"]');
     setBusy(button, true, 'Creando…');
     const form = new FormData(elements.createUserForm);
+    const email = String(form.get('email')).trim().toLowerCase();
+    if (!/^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr$/.test(email)) {
+      showMessage('El correo debe tener el formato nombre.apellido.apellido@una.cr.', 'error');
+      setBusy(button, false);
+      return;
+    }
     try {
       const { data, error } = await state.client.functions.invoke('admin-create-user', {
         body: {
           fullName: String(form.get('name')).trim(),
-          email: String(form.get('email')).trim(),
+          email,
           password: String(form.get('password')),
           role: String(form.get('role'))
         }

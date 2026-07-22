@@ -373,7 +373,7 @@
             <div><strong>Ingreso docente</strong><span>Usa el correo y la clave asignados.</span></div>
           </div>
           <label for="loginEmail">Correo electrónico</label>
-          <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="nombre@una.cr" required />
+          <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
           <label for="loginPassword">Contraseña</label>
           <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="8" required />
           <button class="primary-button" type="submit">Ingresar</button>
@@ -393,9 +393,8 @@
 
       <div class="user-view" id="userView" hidden>
         <div class="account-strip">
-          <div><span>Sesión activa</span><strong id="currentUserName">Docente</strong></div>
+          <strong id="currentUserName">Docente</strong>
           <div class="account-actions">
-            <span class="role-badge" id="currentUserRole">Docente</span>
             <button class="text-button" id="logoutButton" type="button">Cerrar sesión</button>
           </div>
         </div>
@@ -443,7 +442,7 @@
 
     <section class="reservation-board panel" aria-labelledby="boardTitle">
       <div class="section-heading board-heading">
-        <div><p class="eyebrow">Actualización inmediata</p><h2 id="boardTitle">Reservas registradas</h2></div>
+        <div><p class="eyebrow">Actualización inmediata</p><h2 id="boardTitle">Disponibilidad por aula</h2></div>
         <div class="board-filters">
           <label for="boardDate">Fecha</label>
           <input id="boardDate" type="date" />
@@ -451,6 +450,8 @@
           <select id="boardRoom"><option value="TODAS">Todas</option></select>
         </div>
       </div>
+      <div class="availability-board" id="availabilityBoard" aria-live="polite"></div>
+      <h3 class="reservation-detail-title">Detalle de reservas registradas</h3>
       <div class="reservation-list public-list" id="publicReservationsList">
         <p class="empty-state">No hay reservas registradas para esta fecha.</p>
       </div>
@@ -463,10 +464,11 @@
       <div class="admin-grid">
         <form class="admin-form" id="createUserForm">
           <h3>Crear cuenta docente</h3>
+          <p class="form-note account-limit-note">Máximo permitido: 50 cuentas docentes activas.</p>
           <label for="newUserName">Nombre completo</label>
           <input id="newUserName" name="name" maxlength="100" required />
           <label for="newUserEmail">Correo electrónico</label>
-          <input id="newUserEmail" name="email" type="email" required />
+          <input id="newUserEmail" name="email" type="email" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
           <label for="newUserPassword">Contraseña temporal</label>
           <input id="newUserPassword" name="password" type="password" minlength="8" required />
           <label for="newUserRole">Tipo de acceso</label>
