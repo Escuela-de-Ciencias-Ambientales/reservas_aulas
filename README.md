@@ -17,6 +17,10 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Bloqueo de cruces con clases fijas y con otras reservas.
 - Lista personal de próximas reservas y cancelación por parte del propietario.
 - Acceso maestro para consultar y cancelar cualquier reserva.
+- Dos niveles administrativos: superadministrador y administrador de reservas.
+- El superadministrador controla ciclos, roles administrativos y cargas masivas de docentes.
+- El administrador de reservas puede crear docentes, gestionar reservas y editar la ocupación académica.
+- Editor semanal visual para crear, modificar o eliminar cursos directamente en cada bloque del aula.
 - Creación individual de cuentas y carga masiva de docentes autorizados mediante Excel.
 - Diseño adaptable para computadora, tableta y teléfono.
 - Registro de cancelaciones y reglas de seguridad en la base de datos.
@@ -58,7 +62,7 @@ La clave `anon` de Supabase está diseñada para utilizarse en el navegador. La 
 
 ## Flujo de cuentas
 
-La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear una cuenta individual o cargar el Excel de docentes. Si una fila no contiene contraseña, el correo queda autorizado para que el profesor complete su registro inicial; si contiene una contraseña válida, la cuenta se crea inmediatamente. Una persona que no esté en la lista administrativa no puede registrarse. Cada profesor accede con un correo con el formato `nombre.apellido.apellido@una.cr` y puede cambiar su contraseña.
+La primera cuenta maestra queda configurada como superadministrador. Solo ese perfil puede crear otros superadministradores, administradores de reservas o realizar cargas masivas de docentes. El administrador de reservas puede crear cuentas docentes individuales, gestionar reservas y modificar el horario, pero no puede consultar ni modificar la lista masiva de docentes autorizados. Si una fila del Excel no contiene contraseña, el correo queda autorizado para que el profesor complete su registro inicial; si contiene una contraseña válida, la cuenta se crea inmediatamente.
 
 ## Apertura de cada ciclo
 
@@ -66,7 +70,7 @@ El administrador configura el nombre y las fechas del ciclo, así como la apertu
 
 ## Seguridad
 
-La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. El administrador puede gestionar todas. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Las reglas de la base de datos impiden reservar fuera del ciclo, con el sistema cerrado o sobre una clase, y otro control impide superar las 50 cuentas docentes.
+La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. Los administradores pueden gestionar reservas y ocupaciones académicas; únicamente el superadministrador puede cambiar roles o gestionar la autorización masiva. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Las reglas también rechazan cruces entre el horario académico editado y reservas activas.
 
 ## Desarrollo local
 

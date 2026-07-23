@@ -19,7 +19,9 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .header-actions,.header-account { display:flex; align-items:center; }
 .header-actions { justify-content:flex-end; gap:18px; }
 .header-account { gap:12px; padding-left:18px; border-left:1px solid var(--reserve-line); }
+.header-account > div { display:grid; gap:1px; }
 .header-account strong { max-width:220px; overflow:hidden; font-size:14px; text-overflow:ellipsis; white-space:nowrap; }
+.header-account span { color:var(--reserve-muted); font-size:11px; font-weight:700; }
 .back-to-schedule { color:var(--reserve-green); font-size:14px; font-weight:800; text-decoration:none; }
 .back-to-schedule:hover,.back-to-schedule:focus-visible { text-decoration:underline; }
 .private-main { padding:40px 0 70px; }
@@ -224,7 +226,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .access-summary ol { margin: 0 0 18px; padding-left: 22px; line-height: 1.8; }
 .access-summary p { max-width: 48ch; margin: 0; color: rgba(255,255,255,.8); line-height: 1.55; }
 
-.booking-form { padding:28px; }
+.booking-form { padding:30px; }
 .form-heading { gap: 14px; margin-bottom: 22px; }
 .form-heading div { display: grid; gap: 3px; }
 .form-heading strong { color: var(--reserve-ink); font-size: 21px; }
@@ -324,7 +326,11 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .text-button { padding: 8px 10px; color: var(--reserve-red); background: transparent; font-size: 13px; font-weight: 800; }
 .text-button:hover, .text-button:focus-visible { text-decoration: underline; }
 
-.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.field-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; }
+.booking-form .field-grid > div { display:grid; gap:7px; min-width:0; }
+.booking-form .field-grid label { margin:0; }
+.booking-form > label[for="bookingActivity"] { margin-top:22px; }
+.booking-form input,.booking-form select { min-height:54px; }
 
 .availability-check {
   margin-top: 16px;
@@ -351,6 +357,39 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .file-summary { min-height:42px; margin:14px 0 0; padding:11px 12px; border-radius:10px; color:var(--reserve-muted); background:#f3f6f5; font-size:13px; line-height:1.45; }
 .full-button { width:100%; }
 .admin-bookings { margin-top:20px; }
+
+.schedule-editor { margin:22px 0; padding:22px; border:1px solid var(--reserve-line); border-radius:16px; background:#fff; }
+.editor-room-filter { min-width:170px; }
+.editor-room-filter label { margin-top:0; }
+.weekly-editor { display:grid; grid-template-columns:150px repeat(6,minmax(160px,1fr)); margin-top:18px; overflow-x:auto; border:1px solid var(--reserve-line); border-radius:14px; }
+.weekly-editor-cell { min-width:160px; min-height:132px; padding:10px; border-right:1px solid var(--reserve-line); border-bottom:1px solid var(--reserve-line); background:#fbfcfc; }
+.weekly-editor-cell:nth-child(7n) { border-right:0; }
+.weekly-editor-header { min-height:auto; padding:11px 10px; color:var(--reserve-ink); background:#f1f5f3; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+.weekly-editor-shift { min-width:150px; color:var(--reserve-ink); background:#f7f9f8; }
+.weekly-editor-shift strong,.weekly-editor-shift span { display:block; }
+.weekly-editor-shift span { margin-top:5px; color:var(--reserve-muted); font-size:12px; font-weight:600; text-transform:none; }
+.occupancy-card { margin-bottom:8px; padding:10px; border:1px solid #b9d5ca; border-left:4px solid var(--reserve-green); border-radius:10px; background:#fff; }
+.occupancy-card strong,.occupancy-card span { display:block; }
+.occupancy-card strong { line-height:1.25; }
+.occupancy-card span { margin-top:4px; color:var(--reserve-muted); font-size:12px; }
+.occupancy-actions { display:flex; gap:6px; margin-top:8px; }
+.occupancy-actions button { padding:5px 7px; border:0; border-radius:7px; font:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+.edit-occupancy { color:var(--reserve-green); background:var(--reserve-green-soft); }
+.delete-occupancy { color:#9a1f29; background:#fff0f1; }
+.add-occupancy { width:100%; min-height:38px; margin-top:6px; border:1px dashed #bfd0ca; border-radius:9px; color:var(--reserve-green); background:transparent; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.add-occupancy:hover,.add-occupancy:focus-visible { color:#fff; border-color:var(--reserve-green); background:var(--reserve-green); }
+.no-gap { display:block; padding:10px 4px; color:var(--reserve-muted); font-size:12px; text-align:center; }
+
+.schedule-dialog { width:min(610px,calc(100% - 28px)); padding:0; border:0; border-radius:18px; color:var(--reserve-ink); box-shadow:0 28px 80px rgba(20,45,38,.24); }
+.schedule-dialog::backdrop { background:rgba(20,35,31,.5); backdrop-filter:blur(3px); }
+.schedule-dialog form { padding:26px; }
+.schedule-dialog label { display:block; margin:13px 0 6px; font-size:13px; font-weight:800; letter-spacing:.03em; text-transform:uppercase; }
+.schedule-dialog input,.schedule-dialog select { width:100%; min-height:50px; padding:11px 13px; border:1px solid #cfd9d5; border-radius:10px; color:var(--reserve-ink); background:#fff; font:inherit; }
+.dialog-heading,.dialog-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.dialog-heading h2 { margin:0; }
+.dialog-close { width:42px; height:42px; border:0; border-radius:50%; color:var(--reserve-muted); background:#f1f5f3; font-size:25px; cursor:pointer; }
+.dialog-actions { justify-content:flex-end; margin-top:22px; }
+.dialog-actions .primary-button,.dialog-actions .secondary-button { width:auto; margin:0; }
 
 .password-panel {
   display:grid;
@@ -500,6 +539,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .schedule-upload { align-items:flex-start; flex-direction:column; }
   .upload-actions { justify-content:flex-start; }
   .password-panel { grid-template-columns:1fr; }
+  .weekly-editor { grid-template-columns:130px repeat(6,minmax(150px,1fr)); }
 }
 
 @media (max-width: 640px) {
@@ -528,6 +568,9 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .booking-form { padding:20px; }
   .password-form { grid-template-columns:1fr; }
   .password-form .primary-button { width:100%; }
+  .schedule-editor { padding:16px; }
+  .dialog-actions { align-items:stretch; flex-direction:column-reverse; }
+  .dialog-actions .primary-button,.dialog-actions .secondary-button { width:100%; }
   .account-actions { width: 100%; justify-content: space-between; }
   .board-filters { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
   .board-filters label { margin: 0; }

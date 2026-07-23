@@ -15,14 +15,14 @@ function response(body: Record<string, unknown>, status = 200) {
   });
 }
 
-type RequestedUser = { fullName: string; email: string; password: string; role: 'teacher' | 'admin' };
+type RequestedUser = { fullName: string; email: string; password: string; role: 'teacher' | 'reservation_admin' | 'admin' };
 
 function normalizeUser(source: Record<string, unknown>): RequestedUser {
   return {
     fullName: String(source.fullName || '').trim(),
     email: String(source.email || '').trim().toLowerCase(),
     password: String(source.password || ''),
-    role: source.role === 'admin' ? 'admin' : 'teacher'
+    role: source.role === 'admin' ? 'admin' : source.role === 'reservation_admin' ? 'reservation_admin' : 'teacher'
   };
 }
 
@@ -57,16 +57,23 @@ Deno.serve(async (request) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
     const { data: callerProfile, error: profileError } = await adminClient
-      .from('profiles').select('role,active').eq('id', userData.user.id).single();
+      .from('profiles').select('role,admin_scope,active').eq('id', userData.user.id).single();
     if (profileError || callerProfile?.role !== 'admin' || !callerProfile.active) {
       return response({ ok: false, error: 'Se requiere acceso de administrador.' }, 403);
     }
 
     const payload = await request.json();
     const isBulk = Array.isArray(payload.users);
+    const isSuperadmin = callerProfile.admin_scope === 'superadmin';
+    if (isBulk && !isSuperadmin) {
+      return response({ ok: false, error: 'La carga masiva requiere acceso de superadministrador.' }, 403);
+    }
     const users = (isBulk ? payload.users : [payload]).map((item: Record<string, unknown>) => normalizeUser(item));
     if (!users.length) return response({ ok: false, error: 'No se recibieron docentes.' }, 400);
     if (users.length > 50) return response({ ok: false, error: 'El archivo no puede contener más de 50 docentes.' }, 400);
+    if (!isSuperadmin && users.some((user) => user.role !== 'teacher')) {
+      return response({ ok: false, error: 'El administrador de reservas solo puede crear cuentas docentes.' }, 403);
+    }
 
     const emails = new Set<string>();
     for (const user of users) {
@@ -114,7 +121,11 @@ Deno.serve(async (request) => {
         email: user.email,
         password: user.password,
         email_confirm: true,
-        user_metadata: { full_name: user.fullName, role: user.role }
+        user_metadata: {
+          full_name: user.fullName,
+          role: user.role === 'teacher' ? 'teacher' : 'admin',
+          admin_scope: user.role === 'admin' ? 'superadmin' : user.role === 'reservation_admin' ? 'reservations' : null
+        }
       });
       if (createError) results.push({ email: user.email, ok: false, error: createError.message });
       else {

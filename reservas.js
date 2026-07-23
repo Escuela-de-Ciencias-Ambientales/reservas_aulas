@@ -14,7 +14,7 @@
   const elements = {
     connectionStatus: byId('connectionStatus'), systemMessage: byId('systemMessage'), userView: byId('userView'),
     headerAccount: byId('headerAccount'),
-    logoutButton: byId('logoutButton'), currentUserName: byId('currentUserName'), bookingForm: byId('bookingForm'),
+    logoutButton: byId('logoutButton'), currentUserName: byId('currentUserName'), currentUserRole: byId('currentUserRole'), bookingForm: byId('bookingForm'),
     bookingDate: byId('bookingDate'), bookingRoom: byId('bookingRoom'), bookingStart: byId('bookingStart'),
     bookingEnd: byId('bookingEnd'), bookingActivity: byId('bookingActivity'), availabilityCheck: byId('availabilityCheck'),
     saveBookingButton: byId('saveBookingButton'), refreshButton: byId('refreshButton'), myBookingsList: byId('myBookingsList'),
@@ -29,14 +29,24 @@
     scheduleFile: byId('scheduleFile'), uploadScheduleButton: byId('uploadScheduleButton'),
     toggleReservationsButton: byId('toggleReservationsButton'), cycleActionHelp: byId('cycleActionHelp'),
     changePasswordForm: byId('changePasswordForm'), newPassword: byId('newPassword'), confirmPassword: byId('confirmPassword'),
-    usersFile: byId('usersFile'), usersFileSummary: byId('usersFileSummary'), uploadUsersButton: byId('uploadUsersButton')
+    usersFile: byId('usersFile'), usersFileSummary: byId('usersFileSummary'), uploadUsersButton: byId('uploadUsersButton'),
+    adminProfessorField: byId('adminProfessorField'), bookingProfessor: byId('bookingProfessor'),
+    adminAccessLabel: byId('adminAccessLabel'), editorRoom: byId('editorRoom'), weeklyEditor: byId('weeklyEditor'),
+    scheduleDialog: byId('scheduleDialog'), scheduleEntryForm: byId('scheduleEntryForm'), scheduleDialogTitle: byId('scheduleDialogTitle'),
+    scheduleEntryId: byId('scheduleEntryId'), scheduleEntryRoom: byId('scheduleEntryRoom'), scheduleEntryDay: byId('scheduleEntryDay'),
+    scheduleEntryStart: byId('scheduleEntryStart'), scheduleEntryEnd: byId('scheduleEntryEnd'), scheduleEntryLabel: byId('scheduleEntryLabel'),
+    closeScheduleDialog: byId('closeScheduleDialog'), cancelScheduleDialog: byId('cancelScheduleDialog'),
+    saveScheduleEntryButton: byId('saveScheduleEntryButton')
   };
 
   const state = {
     client: null, session: null, profile: null, cycle: null,
     rooms: roomCodes.map((code) => ({ id: null, code, name: `Aula ${code}` })),
-    fixedOccupancies: [], reservations: []
+    fixedOccupancies: [], reservations: [], teachers: []
   };
+
+  const isAdmin = () => state.profile?.role === 'admin';
+  const isSuperadmin = () => isAdmin() && state.profile?.admin_scope === 'superadmin';
 
   function escapeHtml(value) {
     return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -106,7 +116,7 @@
     if (!elements.bookingDate.value || elements.bookingDate.value < cycle.reservation_start_date || elements.bookingDate.value > cycle.reservation_end_date) elements.bookingDate.value = initialDate();
     if (!elements.boardDate.value || elements.boardDate.value < cycle.reservation_start_date || elements.boardDate.value > cycle.reservation_end_date) elements.boardDate.value = initialDate();
 
-    if (state.profile?.role === 'admin') {
+    if (isAdmin()) {
       elements.adminCycleName.value = cycle.name;
       elements.adminReservationStart.value = cycle.reservation_start_date;
       elements.adminReservationEnd.value = cycle.reservation_end_date;
@@ -159,10 +169,15 @@
   }
 
   function roomOptions(all = false) { return (all ? '<option value="TODAS">Todas</option>' : '<option value="">Selecciona un aula</option>') + state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join(''); }
-  function populateRoomSelects() { elements.bookingRoom.innerHTML = roomOptions(); elements.boardRoom.innerHTML = roomOptions(true); }
+  function populateRoomSelects() {
+    elements.bookingRoom.innerHTML = roomOptions();
+    elements.boardRoom.innerHTML = roomOptions(true);
+    elements.editorRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
+    elements.scheduleEntryRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
+  }
   function dateBadge(value) { const date = new Date(`${value}T12:00:00`); return `<span class="booking-date"><strong>${String(date.getDate()).padStart(2, '0')}</strong><span>${monthNames[date.getMonth()]}</span></span>`; }
   function reservationCard(item, controls = false) {
-    const canCancel = controls && (state.profile?.role === 'admin' || item.user_id === state.session?.user?.id);
+    const canCancel = controls && (isAdmin() || item.user_id === state.session?.user?.id);
     const action = canCancel ? `<button class="danger-button" type="button" data-cancel-reservation="${escapeHtml(item.id)}">Cancelar</button>` : `<span class="reservation-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span>`;
     return `<article class="${controls ? 'booking-item' : 'reservation-item'}">${controls ? dateBadge(item.reservation_date) : `<span class="room-pill">${escapeHtml(item.classrooms?.code || 'Aula')}</span>`}<div class="booking-copy"><strong>${escapeHtml(item.activity)}</strong><span>${controls ? `Aula ${escapeHtml(item.classrooms?.code)} · ` : `${escapeHtml(item.professor_name)} · `}${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}${controls ? '' : ` · ${formatDate(item.reservation_date)}`}</span></div>${action}</article>`;
   }
@@ -217,17 +232,112 @@
     elements.myBookingsList.innerHTML = list.length ? list.map((item) => reservationCard(item, true)).join('') : '<p class="empty-state">No tienes reservas próximas.</p>';
   }
   function renderAdminReservations() {
-    if (state.profile?.role !== 'admin') return;
+    if (!isAdmin()) return;
     const list = state.reservations.filter((item) => item.status === 'active' && item.reservation_date >= localDateString()).sort((a, b) => a.reservation_date.localeCompare(b.reservation_date) || a.start_time.localeCompare(b.start_time));
     elements.adminBookingsList.innerHTML = list.length ? list.map((item) => reservationCard(item, true)).join('') : '<p class="empty-state">No hay reservas activas.</p>';
   }
   function renderSession() {
     const loggedIn = Boolean(state.session && state.profile);
     elements.headerAccount.hidden = !loggedIn;
-    elements.userView.hidden = !loggedIn; elements.reservationBoard.hidden = !loggedIn; elements.adminPanel.hidden = !loggedIn || state.profile?.role !== 'admin';
+    elements.userView.hidden = !loggedIn; elements.reservationBoard.hidden = !loggedIn; elements.adminPanel.hidden = !loggedIn || !isAdmin();
     if (!loggedIn) return;
     elements.currentUserName.textContent = state.profile.full_name;
+    elements.currentUserRole.textContent = isSuperadmin() ? 'Superadministrador' : isAdmin() ? 'Administrador de reservas' : 'Docente';
+    elements.adminProfessorField.hidden = !isAdmin();
+    elements.adminAccessLabel.textContent = isSuperadmin() ? 'Acceso de superadministrador' : 'Acceso de administración de reservas';
+    document.querySelectorAll('.superadmin-only').forEach((element) => { element.hidden = !isSuperadmin(); });
     renderCycle(); renderMyReservations(); renderAdminReservations();
+  }
+  function populateTeacherSelect() {
+    elements.bookingProfessor.innerHTML = state.teachers.length
+      ? state.teachers.map((teacher) => `<option value="${escapeHtml(teacher.id)}">${escapeHtml(teacher.full_name)}</option>`).join('')
+      : '<option value="">No hay docentes activos</option>';
+  }
+  function shiftForTime(time) {
+    const minutes = timeToMinutes(time);
+    if (minutes < 780) return 'morning';
+    if (minutes < 990) return 'afternoon';
+    return 'night';
+  }
+  function freeScheduleGaps(records, shiftStart, shiftEnd) {
+    const start = timeToMinutes(shiftStart), end = timeToMinutes(shiftEnd);
+    const intervals = records
+      .map((item) => ({ start: Math.max(start, timeToMinutes(item.start_time)), end: Math.min(end, timeToMinutes(item.end_time)) }))
+      .filter((item) => item.start < item.end)
+      .sort((a, b) => a.start - b.start);
+    const gaps = []; let cursor = start;
+    intervals.forEach((item) => {
+      if (cursor < item.start) gaps.push({ start: cursor, end: item.start });
+      cursor = Math.max(cursor, item.end);
+    });
+    if (cursor < end) gaps.push({ start: cursor, end });
+    return gaps;
+  }
+  function renderWeeklyEditor() {
+    if (!isAdmin() || !elements.editorRoom.value) return;
+    const room = elements.editorRoom.value;
+    const days = [{ id: 1, label: 'Lunes' }, { id: 2, label: 'Martes' }, { id: 3, label: 'Miércoles' }, { id: 4, label: 'Jueves' }, { id: 5, label: 'Viernes' }, { id: 6, label: 'Sábado' }];
+    const shifts = [
+      { id: 'morning', label: 'Mañana', detail: '07:00–13:00', start: '07:00', end: '13:00' },
+      { id: 'afternoon', label: 'Tarde', detail: '13:00–16:30', start: '13:00', end: '16:30' },
+      { id: 'night', label: 'Noche', detail: '16:30–21:00', start: '16:30', end: '21:00' }
+    ];
+    const header = `<div class="weekly-editor-cell weekly-editor-header">Jornada</div>${days.map((day) => `<div class="weekly-editor-cell weekly-editor-header">${day.label}</div>`).join('')}`;
+    const rows = shifts.map((shift) => {
+      const cells = days.map((day) => {
+        const dayRecords = state.fixedOccupancies.filter((item) => item.classrooms?.code === room && item.day_of_week === day.id);
+        const records = dayRecords.filter((item) => shiftForTime(item.start_time) === shift.id);
+        const gapButtons = freeScheduleGaps(dayRecords, shift.start, shift.end).map((gap) => `<button class="add-occupancy" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${minutesToTime(gap.start)}" data-end="${minutesToTime(gap.end)}">+ Añadir ${minutesToTime(gap.start)}–${minutesToTime(gap.end)}</button>`).join('');
+        return `<div class="weekly-editor-cell">${records.map((item) => `<article class="occupancy-card"><strong>${escapeHtml(item.label)}</strong><span>${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span><div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div></article>`).join('')}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
+      }).join('');
+      return `<div class="weekly-editor-cell weekly-editor-header weekly-editor-shift"><strong>${shift.label}</strong><span>${shift.detail}</span></div>${cells}`;
+    }).join('');
+    elements.weeklyEditor.innerHTML = header + rows;
+  }
+  function openScheduleDialog(record = null, defaults = {}) {
+    elements.scheduleEntryForm.reset();
+    elements.scheduleEntryId.value = record?.id || '';
+    elements.scheduleEntryRoom.value = record?.classrooms?.code || defaults.room || elements.editorRoom.value;
+    elements.scheduleEntryDay.value = String(record?.day_of_week || defaults.day || 1);
+    elements.scheduleEntryStart.value = normalizeTime(record?.start_time || defaults.start || '08:00');
+    elements.scheduleEntryEnd.value = normalizeTime(record?.end_time || defaults.end || '09:00');
+    elements.scheduleEntryLabel.value = record?.label || '';
+    elements.scheduleDialogTitle.textContent = record ? 'Editar ocupación' : 'Añadir ocupación';
+    elements.scheduleDialog.showModal();
+    window.setTimeout(() => elements.scheduleEntryLabel.focus(), 80);
+  }
+  function closeScheduleEditor() { elements.scheduleDialog.close(); }
+  async function saveScheduleEntry(event) {
+    event.preventDefault(); clearMessage();
+    const id = elements.scheduleEntryId.value ? Number(elements.scheduleEntryId.value) : null;
+    setBusy(elements.saveScheduleEntryButton, true, 'Guardando…');
+    try {
+      const { error } = await state.client.rpc('admin_upsert_fixed_occupancy', {
+        p_id: id,
+        p_classroom_code: elements.scheduleEntryRoom.value,
+        p_day: Number(elements.scheduleEntryDay.value),
+        p_start: elements.scheduleEntryStart.value,
+        p_end: elements.scheduleEntryEnd.value,
+        p_label: elements.scheduleEntryLabel.value.trim()
+      });
+      if (error) throw error;
+      closeScheduleEditor();
+      await loadFixedOccupancies();
+      renderWeeklyEditor();
+      renderPublicReservations();
+      showMessage(id ? 'Ocupación actualizada correctamente.' : 'Ocupación añadida correctamente.');
+    } catch (error) { showMessage(error.message, 'error'); }
+    finally { setBusy(elements.saveScheduleEntryButton, false); }
+  }
+  async function deleteScheduleEntry(id) {
+    if (!window.confirm('¿Deseas eliminar esta ocupación académica?')) return;
+    clearMessage();
+    const { error } = await state.client.rpc('admin_delete_fixed_occupancy', { p_id: Number(id) });
+    if (error) return showMessage(error.message, 'error');
+    await loadFixedOccupancies();
+    renderWeeklyEditor();
+    renderPublicReservations();
+    showMessage('Ocupación eliminada correctamente.');
   }
 
   async function loadRooms() { const { data, error } = await state.client.from('classrooms').select('id,code,name').eq('active', true).order('sort_order'); if (error) throw error; if (data?.length) state.rooms = data; populateRoomSelects(); }
@@ -239,7 +349,14 @@
   async function loadFixedOccupancies() {
     if (!state.cycle) { state.fixedOccupancies = []; return; }
     const { data, error } = await state.client.from('fixed_occupancies').select('id,day_of_week,start_time,end_time,label,classrooms(code)').eq('cycle_id', state.cycle.id).order('day_of_week').order('start_time');
-    if (error) throw error; state.fixedOccupancies = data || [];
+    if (error) throw error; state.fixedOccupancies = data || []; renderWeeklyEditor();
+  }
+  async function loadTeachers() {
+    if (!isAdmin()) { state.teachers = []; populateTeacherSelect(); return; }
+    const { data, error } = await state.client.from('profiles').select('id,full_name').eq('role', 'teacher').eq('active', true).order('full_name');
+    if (error) throw error;
+    state.teachers = data || [];
+    populateTeacherSelect();
   }
   async function loadReservations() {
     if (!state.cycle) { state.reservations = []; return; }
@@ -248,12 +365,12 @@
   }
   async function loadProfile() {
     if (!state.session) { state.profile = null; renderSession(); return; }
-    const { data, error } = await state.client.from('profiles').select('id,full_name,email,role,active').eq('id', state.session.user.id).single();
+    const { data, error } = await state.client.from('profiles').select('id,full_name,email,role,admin_scope,active').eq('id', state.session.user.id).single();
     if (error) throw error;
     if (!data.active) { await state.client.auth.signOut(); throw new Error('Esta cuenta está desactivada. Contacta a la administración.'); }
     state.profile = data; renderSession();
   }
-  async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadReservations(); }
+  async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); }
   async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html'); }
 
   async function saveReservation(event) {
@@ -261,9 +378,20 @@
     const slot = { room: elements.bookingRoom.value, date: elements.bookingDate.value, start: elements.bookingStart.value, end: elements.bookingEnd.value };
     const validation = validateSlot(slot); if (!validation.ok) { showMessage(validation.message, 'error'); return; }
     const room = state.rooms.find((item) => item.code === slot.room); if (!room?.id) { showMessage('No se encontró el aula seleccionada.', 'error'); return; }
+    if (isAdmin() && !elements.bookingProfessor.value) { showMessage('Selecciona el profesor para quien se realizará la reserva.', 'error'); return; }
     setBusy(elements.saveBookingButton, true, 'Guardando…');
     try {
-      const { error } = await state.client.from('reservations').insert({ cycle_id: state.cycle.id, user_id: state.session.user.id, classroom_id: room.id, reservation_date: slot.date, start_time: slot.start, end_time: slot.end, activity: elements.bookingActivity.value.trim(), professor_name: state.profile.full_name });
+      const request = isAdmin()
+        ? await state.client.rpc('admin_create_reservation', {
+          p_user_id: elements.bookingProfessor.value,
+          p_classroom_id: room.id,
+          p_date: slot.date,
+          p_start: slot.start,
+          p_end: slot.end,
+          p_activity: elements.bookingActivity.value.trim()
+        })
+        : await state.client.from('reservations').insert({ cycle_id: state.cycle.id, user_id: state.session.user.id, classroom_id: room.id, reservation_date: slot.date, start_time: slot.start, end_time: slot.end, activity: elements.bookingActivity.value.trim(), professor_name: state.profile.full_name });
+      const { error } = request;
       if (error) throw error;
       elements.bookingForm.reset(); elements.bookingDate.value = initialDate(); elements.bookingStart.value = '08:00'; elements.bookingEnd.value = '09:00'; await loadReservations(); showMessage('Reserva guardada correctamente.');
     } catch (error) { showMessage(error.code === '23P01' ? 'El aula ya está ocupada en ese horario.' : error.message, 'error'); }
@@ -394,6 +522,10 @@
   function bindEvents() {
     elements.logoutButton.addEventListener('click', signOut); elements.bookingForm.addEventListener('submit', saveReservation); elements.createUserForm.addEventListener('submit', createUser); elements.cycleForm.addEventListener('submit', configureCycle);
     elements.changePasswordForm.addEventListener('submit', changePassword); elements.uploadUsersButton.addEventListener('click', uploadUsers);
+    elements.editorRoom.addEventListener('change', renderWeeklyEditor);
+    elements.scheduleEntryForm.addEventListener('submit', saveScheduleEntry);
+    elements.closeScheduleDialog.addEventListener('click', closeScheduleEditor);
+    elements.cancelScheduleDialog.addEventListener('click', closeScheduleEditor);
     elements.uploadScheduleButton.addEventListener('click', uploadSchedule); elements.toggleReservationsButton.addEventListener('click', toggleReservations);
     elements.scheduleFile.addEventListener('change', () => { const label = document.querySelector('label[for="scheduleFile"]'); label.textContent = elements.scheduleFile.files[0]?.name || 'Seleccionar Excel'; label.classList.toggle('has-file', Boolean(elements.scheduleFile.files[0])); });
     elements.usersFile.addEventListener('change', async () => {
@@ -415,6 +547,12 @@
       if (cancelButton) cancelReservation(cancelButton.dataset.cancelReservation);
       const reserveButton = event.target.closest('[data-reserve-room]');
       if (reserveButton) selectAvailableSlot(reserveButton);
+      const addOccupancyButton = event.target.closest('[data-add-occupancy]');
+      if (addOccupancyButton) openScheduleDialog(null, { room: addOccupancyButton.dataset.room, day: addOccupancyButton.dataset.day, start: addOccupancyButton.dataset.start, end: addOccupancyButton.dataset.end });
+      const editOccupancyButton = event.target.closest('[data-edit-occupancy]');
+      if (editOccupancyButton) openScheduleDialog(state.fixedOccupancies.find((item) => String(item.id) === editOccupancyButton.dataset.editOccupancy));
+      const deleteOccupancyButton = event.target.closest('[data-delete-occupancy]');
+      if (deleteOccupancyButton) deleteScheduleEntry(deleteOccupancyButton.dataset.deleteOccupancy);
     });
   }
 

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=6" />
+  <link rel="stylesheet" href="reservas.css?v=7" />
 </head>
 <body>
   <header class="private-header">
@@ -20,7 +20,7 @@
       <div class="header-actions">
         <a class="back-to-schedule" href="index.html">Ver ocupación pública</a>
         <div class="header-account" id="headerAccount" hidden>
-          <strong id="currentUserName">Docente</strong>
+          <div><strong id="currentUserName">Docente</strong><span id="currentUserRole">Docente</span></div>
           <button class="text-button" id="logoutButton" type="button">Cerrar sesión</button>
         </div>
       </div>
@@ -61,6 +61,7 @@
             <div><label for="bookingStart">Hora de inicio</label><input id="bookingStart" name="start" type="time" min="07:00" max="21:00" step="1800" required /></div>
             <div><label for="bookingEnd">Hora de finalización</label><input id="bookingEnd" name="end" type="time" min="07:30" max="21:00" step="1800" required /></div>
           </div>
+          <div id="adminProfessorField" hidden><label for="bookingProfessor">Reservar a nombre de</label><select id="bookingProfessor" name="professor"></select></div>
           <label for="bookingActivity">Actividad</label>
           <input id="bookingActivity" name="activity" type="text" maxlength="120" placeholder="Ej.: Reunión de proyecto" required />
           <div class="availability-check" id="availabilityCheck">Selecciona la fecha y el horario para comprobar disponibilidad.</div>
@@ -104,13 +105,13 @@
     </section>
 
     <section class="admin-panel panel" id="adminPanel" aria-labelledby="adminTitle" hidden>
-      <div class="section-heading"><div><p class="eyebrow">Acceso maestro</p><h2 id="adminTitle">Administración</h2></div></div>
+      <div class="section-heading"><div><p class="eyebrow" id="adminAccessLabel">Acceso administrativo</p><h2 id="adminTitle">Administración de reservas</h2></div></div>
       <section class="cycle-admin" aria-labelledby="cycleAdminTitle">
         <div class="section-heading compact-heading">
           <div><h3 id="cycleAdminTitle">Control del ciclo</h3><p>Primero configura el periodo y carga la ocupación académica. Después podrás abrir las reservas.</p></div>
           <span class="cycle-state is-closed" id="adminCycleState">Cerrado</span>
         </div>
-        <form id="cycleForm" class="cycle-form">
+        <form id="cycleForm" class="cycle-form superadmin-only">
           <div><label for="adminCycleName">Nombre del ciclo</label><input id="adminCycleName" name="name" placeholder="I Ciclo 2027" maxlength="80" required /></div>
           <div><label for="adminReservationStart">Reservas desde</label><input id="adminReservationStart" name="reservationStart" type="date" required /></div>
           <div><label for="adminReservationEnd">Reservas hasta</label><input id="adminReservationEnd" name="reservationEnd" type="date" required /></div>
@@ -128,10 +129,20 @@
             <button class="primary-button compact-button" id="uploadScheduleButton" type="button">Cargar y reemplazar horario</button>
           </div>
         </div>
-        <div class="cycle-actions">
+        <div class="cycle-actions superadmin-only">
           <p id="cycleActionHelp">Las reservas permanecerán cerradas hasta completar la configuración.</p>
           <button class="primary-button compact-button" id="toggleReservationsButton" type="button" disabled>Abrir reservas</button>
         </div>
+      </section>
+      <section class="schedule-editor" aria-labelledby="scheduleEditorTitle">
+        <div class="section-heading compact-heading">
+          <div>
+            <h3 id="scheduleEditorTitle">Editar ocupación semanal</h3>
+            <p>Selecciona un aula. Puedes editar o eliminar un curso existente y añadir otro directamente en un espacio libre.</p>
+          </div>
+          <div class="editor-room-filter"><label for="editorRoom">Aula</label><select id="editorRoom"></select></div>
+        </div>
+        <div class="weekly-editor" id="weeklyEditor" aria-live="polite"></div>
       </section>
       <div class="account-management-grid">
         <form class="admin-form" id="createUserForm">
@@ -140,10 +151,10 @@
           <label for="newUserName">Nombre completo</label><input id="newUserName" name="name" maxlength="100" required />
           <label for="newUserEmail">Correo electrónico</label><input id="newUserEmail" name="email" type="email" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
           <label for="newUserPassword">Contraseña temporal</label><input id="newUserPassword" name="password" type="password" minlength="8" pattern="(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Mínimo 8 caracteres, una mayúscula y un número" required />
-          <label for="newUserRole">Tipo de acceso</label><select id="newUserRole" name="role"><option value="teacher">Docente</option><option value="admin">Administrador</option></select>
+          <label class="superadmin-only" for="newUserRole">Tipo de acceso</label><select class="superadmin-only" id="newUserRole" name="role"><option value="teacher">Docente</option><option value="reservation_admin">Administrador de reservas</option><option value="admin">Superadministrador</option></select>
           <button class="primary-button" type="submit">Crear cuenta</button>
         </form>
-        <section class="bulk-users-card">
+        <section class="bulk-users-card superadmin-only" id="bulkUsersCard">
           <h3>Cargar docentes desde Excel</h3>
           <p>Nombre y correo autorizan el registro personal. Si agregas una contraseña temporal, la cuenta se crea de inmediato.</p>
           <a class="secondary-button full-button" href="plantillas/plantilla_cuentas_docentes.xlsx" download>Descargar plantilla de cuentas</a>
@@ -160,9 +171,31 @@
     </section>
   </main>
 
+  <dialog class="schedule-dialog" id="scheduleDialog">
+    <form id="scheduleEntryForm" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Ocupación académica</p><h2 id="scheduleDialogTitle">Añadir curso</h2></div>
+        <button class="dialog-close" id="closeScheduleDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <input id="scheduleEntryId" type="hidden" />
+      <div class="field-grid">
+        <div><label for="scheduleEntryRoom">Aula</label><select id="scheduleEntryRoom" required></select></div>
+        <div><label for="scheduleEntryDay">Día</label><select id="scheduleEntryDay" required><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option></select></div>
+        <div><label for="scheduleEntryStart">Hora de inicio</label><input id="scheduleEntryStart" type="time" min="07:00" max="20:30" step="1800" required /></div>
+        <div><label for="scheduleEntryEnd">Hora de finalización</label><input id="scheduleEntryEnd" type="time" min="07:30" max="21:00" step="1800" required /></div>
+      </div>
+      <label for="scheduleEntryLabel">Curso, profesor o detalle</label>
+      <input id="scheduleEntryLabel" type="text" maxlength="160" required />
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelScheduleDialog" type="button">Cancelar</button>
+        <button class="primary-button compact-button" id="saveScheduleEntryButton" type="submit">Guardar ocupación</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
-  <script src="reservas.js?v=6"></script>
+  <script src="reservas.js?v=7"></script>
 </body>
 </html>
