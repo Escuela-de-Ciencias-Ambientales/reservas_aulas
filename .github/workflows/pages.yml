@@ -29,6 +29,7 @@ jobs:
         run: |
           mkdir _site
           find . -maxdepth 1 -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.png' -o -name '*.ico' \) -exec cp {} _site/ \;
+          cp -r plantillas _site/
       - name: Empaquetar sitio
         uses: actions/upload-pages-artifact@v3
         with:
