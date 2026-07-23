@@ -19,9 +19,11 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .header-actions,.header-account { display:flex; align-items:center; }
 .header-actions { justify-content:flex-end; gap:18px; }
 .header-account { gap:12px; padding-left:18px; border-left:1px solid var(--reserve-line); }
-.header-account > div { display:grid; gap:1px; }
+.header-account-identity { display:grid; gap:1px; }
 .header-account strong { max-width:220px; overflow:hidden; font-size:14px; text-overflow:ellipsis; white-space:nowrap; }
 .header-account span { color:var(--reserve-muted); font-size:11px; font-weight:700; }
+.account-password-link { justify-self:start; margin-top:3px; padding:0; border:0; color:var(--reserve-green); background:transparent; font:inherit; font-size:11px; font-weight:800; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+.account-password-link:hover,.account-password-link:focus-visible { color:#055d40; }
 .back-to-schedule { color:var(--reserve-green); font-size:14px; font-weight:800; text-decoration:none; }
 .back-to-schedule:hover,.back-to-schedule:focus-visible { text-decoration:underline; }
 .private-main { padding:40px 0 70px; }
@@ -417,6 +419,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .optional-label { color:var(--reserve-muted); font-size:11px; font-weight:700; letter-spacing:0; text-transform:none; }
 .schedule-dialog-help { margin:12px 0 0; color:var(--reserve-muted); font-size:13px; line-height:1.45; }
 .booking-dialog-intro { margin:10px 0 2px; color:var(--reserve-muted); font-size:14px; line-height:1.45; }
+.password-dialog { width:min(620px,calc(100% - 28px)); }
+.password-dialog-fields { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px; }
 .dialog-heading,.dialog-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .dialog-heading h2 { margin:0; }
 .dialog-close { width:42px; height:42px; border:0; border-radius:50%; color:var(--reserve-muted); background:#f1f5f3; font-size:25px; cursor:pointer; }
@@ -577,6 +581,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 @media (max-width: 620px) {
   .schedule-dialog form { padding:20px; }
   .schedule-details-grid { grid-template-columns:1fr; }
+  .password-dialog-fields { grid-template-columns:1fr; }
   .schedule-field-wide { grid-column:auto; }
   .dialog-actions { align-items:stretch; flex-direction:column-reverse; }
   .dialog-actions .primary-button,.dialog-actions .secondary-button { width:100%; }

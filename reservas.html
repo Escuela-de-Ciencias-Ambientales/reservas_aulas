@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=14" />
+  <link rel="stylesheet" href="reservas.css?v=15" />
 </head>
 <body>
   <header class="private-header">
@@ -20,7 +20,11 @@
       <div class="header-actions">
         <a class="back-to-schedule" href="index.html">Ver ocupación pública</a>
         <div class="header-account" id="headerAccount" hidden>
-          <div><strong id="currentUserName">Docente</strong><span id="currentUserRole">Docente</span></div>
+          <div class="header-account-identity">
+            <strong id="currentUserName">Docente</strong>
+            <span id="currentUserRole">Docente</span>
+            <button class="account-password-link" id="openPasswordDialog" type="button">Cambiar contraseña</button>
+          </div>
           <button class="text-button" id="logoutButton" type="button">Cerrar sesión</button>
         </div>
       </div>
@@ -77,30 +81,6 @@
         </section>
       </div>
 
-      <section class="password-panel panel" aria-labelledby="passwordTitle">
-        <div>
-          <p class="eyebrow">Seguridad de la cuenta</p>
-          <h2 id="passwordTitle">Cambiar contraseña</h2>
-          <p>Usa al menos 8 caracteres, una letra mayúscula y un número.</p>
-        </div>
-        <form id="changePasswordForm" class="password-form">
-          <div>
-            <label for="newPassword">Nueva contraseña</label>
-            <div class="password-input">
-              <input id="newPassword" name="password" type="password" minlength="8" autocomplete="new-password" required />
-              <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="newPassword"><span class="password-eye" aria-hidden="true"></span></button>
-            </div>
-          </div>
-          <div>
-            <label for="confirmPassword">Confirmar contraseña</label>
-            <div class="password-input">
-              <input id="confirmPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
-              <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="confirmPassword"><span class="password-eye" aria-hidden="true"></span></button>
-            </div>
-          </div>
-          <button class="primary-button compact-button" type="submit">Actualizar contraseña</button>
-        </form>
-      </section>
     </section>
 
     <section class="schedule-browser panel" id="scheduleBrowser" aria-labelledby="scheduleEditorTitle" hidden>
@@ -178,6 +158,37 @@
     </section>
   </main>
 
+  <dialog class="schedule-dialog password-dialog" id="passwordDialog">
+    <form id="changePasswordForm" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Seguridad de la cuenta</p><h2>Cambiar contraseña</h2></div>
+        <button class="dialog-close" id="closePasswordDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="booking-dialog-intro">Usa al menos 8 caracteres, una letra mayúscula y un número.</p>
+      <div class="form-message" id="passwordMessage" role="status" aria-live="polite" hidden></div>
+      <div class="password-dialog-fields">
+        <div>
+          <label for="newPassword">Nueva contraseña</label>
+          <div class="password-input">
+            <input id="newPassword" name="password" type="password" minlength="8" autocomplete="new-password" required />
+            <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="newPassword"><span class="password-eye" aria-hidden="true"></span></button>
+          </div>
+        </div>
+        <div>
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <div class="password-input">
+            <input id="confirmPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
+            <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="confirmPassword"><span class="password-eye" aria-hidden="true"></span></button>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelPasswordDialog" type="button">Cancelar</button>
+        <button class="primary-button compact-button" type="submit">Actualizar contraseña</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="schedule-dialog booking-dialog" id="bookingDialog">
     <form id="bookingDialogForm" method="dialog">
       <div class="dialog-heading">
@@ -253,6 +264,6 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=16"></script>
+  <script src="reservas.js?v=17"></script>
 </body>
 </html>

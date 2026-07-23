@@ -3,11 +3,13 @@
 
   const config = window.RESERVAS_CONFIG || {};
   const isConfigured = Boolean(config.supabaseUrl && config.supabaseAnonKey);
-  const roomCodes = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
+  const roomCodes = ['L601', 'L602', 'L603', '708', '709', '710', '711', 'SS-3P', 'SR-1P'];
   const roomDisplayNames = {
     L601: 'Laboratorio L601',
     L602: 'Laboratorio L602',
-    L603: 'Laboratorio L603'
+    L603: 'Laboratorio L603',
+    'SS-3P': 'Sala de sesiones tercer piso',
+    'SR-1P': 'Sala reuniones primer piso'
   };
   const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
   const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
@@ -34,7 +36,10 @@
     adminOpensAt: byId('adminOpensAt'), adminClosesAt: byId('adminClosesAt'), scheduleStatus: byId('scheduleStatus'),
     scheduleFile: byId('scheduleFile'), uploadScheduleButton: byId('uploadScheduleButton'),
     toggleReservationsButton: byId('toggleReservationsButton'), cycleActionHelp: byId('cycleActionHelp'),
-    changePasswordForm: byId('changePasswordForm'), newPassword: byId('newPassword'), confirmPassword: byId('confirmPassword'),
+    passwordDialog: byId('passwordDialog'), openPasswordDialog: byId('openPasswordDialog'),
+    closePasswordDialog: byId('closePasswordDialog'), cancelPasswordDialog: byId('cancelPasswordDialog'),
+    changePasswordForm: byId('changePasswordForm'), passwordMessage: byId('passwordMessage'),
+    newPassword: byId('newPassword'), confirmPassword: byId('confirmPassword'),
     usersFile: byId('usersFile'), usersFileSummary: byId('usersFileSummary'), uploadUsersButton: byId('uploadUsersButton'),
     adminProfessorField: byId('adminProfessorField'), bookingProfessor: byId('bookingProfessor'),
     adminAccessLabel: byId('adminAccessLabel'), editorRoom: byId('editorRoom'), weeklyEditor: byId('weeklyEditor'),
@@ -335,11 +340,10 @@
         const fixedRecords = fixedForDay.filter((item) => overlaps(item.start_time, item.end_time, shift.start, shift.end));
         const reservationRecords = reservationsForDay.filter((item) => overlaps(item.start_time, item.end_time, shift.start, shift.end));
         const isFutureDate = day.date >= localDateString();
-        const canReserve = cycleIsOpen() && isFutureDate;
         const gapButtons = freeScheduleGaps([...fixedForDay, ...reservationsForDay], shift.start, shift.end).map((gap) => {
           const start = minutesToTime(gap.start), end = minutesToTime(gap.end);
           const reserveAction = isFutureDate
-            ? `<button class="add-occupancy" type="button" data-reserve-room="${escapeHtml(room)}" data-reserve-date="${day.date}" data-reserve-start="${start}" data-reserve-end="${end}"${canReserve ? '' : ' disabled title="Las reservas están cerradas"'}>Reservar ${start}–${end}</button>`
+            ? `<button class="add-occupancy" type="button" data-reserve-room="${escapeHtml(room)}" data-reserve-date="${day.date}" data-reserve-start="${start}" data-reserve-end="${end}">Reservar ${start}–${end}</button>`
             : `<span class="available-gap">${start}–${end} · Disponible</span>`;
           const academicAction = isAdmin()
             ? `<button class="academic-gap-action" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${start}" data-end="${end}">Crear ocupación académica</button>`
@@ -450,7 +454,7 @@
     state.profile = data; renderSession();
   }
   async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); }
-  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=5'); }
+  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=6'); }
 
   async function saveReservation(event) {
     event.preventDefault(); clearMessage();
@@ -539,19 +543,41 @@
     }
   }
   async function cancelReservation(id) { if (!window.confirm('¿Deseas cancelar esta reserva?')) return; clearMessage(); const { error } = await state.client.from('reservations').update({ status: 'cancelled' }).eq('id', id); if (error) return showMessage(error.message, 'error'); await loadReservations(); showMessage('La reserva fue cancelada.'); }
+  function clearPasswordMessage() {
+    elements.passwordMessage.hidden = true;
+    elements.passwordMessage.textContent = '';
+    elements.passwordMessage.className = 'form-message';
+  }
+  function showPasswordMessage(message) {
+    elements.passwordMessage.textContent = message;
+    elements.passwordMessage.className = 'form-message is-error';
+    elements.passwordMessage.hidden = false;
+  }
+  function openPasswordEditor() {
+    elements.changePasswordForm.reset();
+    clearPasswordMessage();
+    if (!elements.passwordDialog.open) elements.passwordDialog.showModal();
+    window.setTimeout(() => elements.newPassword.focus(), 80);
+  }
+  function closePasswordEditor() {
+    elements.changePasswordForm.reset();
+    clearPasswordMessage();
+    elements.passwordDialog.close();
+  }
   async function changePassword(event) {
-    event.preventDefault(); clearMessage();
+    event.preventDefault(); clearMessage(); clearPasswordMessage();
     const password = elements.newPassword.value;
-    if (!strongPasswordPattern.test(password)) return showMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'error');
-    if (password !== elements.confirmPassword.value) return showMessage('Las contraseñas no coinciden.', 'error');
+    if (!strongPasswordPattern.test(password)) return showPasswordMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.');
+    if (password !== elements.confirmPassword.value) return showPasswordMessage('Las contraseñas no coinciden.');
     const button = elements.changePasswordForm.querySelector('button[type="submit"]');
     setBusy(button, true, 'Actualizando…');
     try {
       const { error } = await state.client.auth.updateUser({ password });
       if (error) throw error;
       elements.changePasswordForm.reset();
+      elements.passwordDialog.close();
       showMessage('Contraseña actualizada correctamente.');
-    } catch (error) { showMessage(error.message, 'error'); }
+    } catch (error) { showPasswordMessage(error.message); }
     finally { setBusy(button, false); }
   }
   async function createUser(event) {
@@ -686,6 +712,9 @@
   function bindEvents() {
     elements.logoutButton.addEventListener('click', signOut); elements.bookingForm.addEventListener('submit', saveReservation); elements.createUserForm.addEventListener('submit', createUser); elements.cycleForm.addEventListener('submit', configureCycle);
     elements.changePasswordForm.addEventListener('submit', changePassword); elements.uploadUsersButton.addEventListener('click', uploadUsers);
+    elements.openPasswordDialog.addEventListener('click', openPasswordEditor);
+    elements.closePasswordDialog.addEventListener('click', closePasswordEditor);
+    elements.cancelPasswordDialog.addEventListener('click', closePasswordEditor);
     elements.editorRoom.addEventListener('change', renderWeeklyEditor);
     elements.editorWeek.addEventListener('change', renderWeeklyEditor);
     elements.bookingDialogForm.addEventListener('submit', saveDialogReservation);
@@ -726,9 +755,9 @@
     try {
       state.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
       elements.connectionStatus.textContent = 'Sistema disponible'; const { data } = await state.client.auth.getSession(); state.session = data.session;
-      if (!state.session) { window.location.replace('ingreso.html?v=5'); return; }
+      if (!state.session) { window.location.replace('ingreso.html?v=6'); return; }
       await loadProfile(); await loadRooms(); await reloadAll();
-      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=5'); });
+      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=6'); });
     } catch (error) { elements.connectionStatus.textContent = 'Conexión no disponible'; elements.connectionStatus.classList.add('is-offline'); showMessage(`No fue posible conectar con el sistema: ${error.message}`, 'error'); }
   }
   initialize();

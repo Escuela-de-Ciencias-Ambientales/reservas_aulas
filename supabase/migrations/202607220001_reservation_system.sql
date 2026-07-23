@@ -64,7 +64,9 @@ insert into public.classrooms (code, name, sort_order) values
   ('708', 'Aula 708', 4),
   ('709', 'Aula 709', 5),
   ('710', 'Aula 710', 6),
-  ('711', 'Aula 711', 7)
+  ('711', 'Aula 711', 7),
+  ('SS-3P', 'Sala de sesiones tercer piso', 8),
+  ('SR-1P', 'Sala reuniones primer piso', 9)
 on conflict (code) do update set name = excluded.name, sort_order = excluded.sort_order, active = true;
 
 create or replace function public.set_updated_at()
