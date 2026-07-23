@@ -58,9 +58,9 @@ create index reservations_date_room_idx on public.reservations(reservation_date,
 create index fixed_occupancies_room_day_idx on public.fixed_occupancies(classroom_id, day_of_week);
 
 insert into public.classrooms (code, name, sort_order) values
-  ('L601', 'Aula L601', 1),
-  ('L602', 'Aula L602', 2),
-  ('L603', 'Aula L603', 3),
+  ('L601', 'Laboratorio L01', 1),
+  ('L602', 'Laboratorio L602', 2),
+  ('L603', 'Laboratorio L603', 3),
   ('708', 'Aula 708', 4),
   ('709', 'Aula 709', 5),
   ('710', 'Aula 710', 6),

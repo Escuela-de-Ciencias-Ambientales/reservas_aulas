@@ -4,6 +4,11 @@
   const config = window.RESERVAS_CONFIG || {};
   const isConfigured = Boolean(config.supabaseUrl && config.supabaseAnonKey);
   const roomCodes = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
+  const roomDisplayNames = {
+    L601: 'Laboratorio L01',
+    L602: 'Laboratorio L602',
+    L603: 'Laboratorio L603'
+  };
   const dayNames = ['DOMINGO', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
   const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
   const dayMap = { DOMINGO: 0, LUNES: 1, MARTES: 2, MIERCOLES: 3, MIÉRCOLES: 3, JUEVES: 4, VIERNES: 5, SABADO: 6, SÁBADO: 6 };
@@ -52,7 +57,7 @@
 
   const state = {
     client: null, session: null, profile: null, cycle: null,
-    rooms: roomCodes.map((code) => ({ id: null, code, name: `Aula ${code}` })),
+    rooms: roomCodes.map((code) => ({ id: null, code, name: roomDisplayNames[code] || `Aula ${code}` })),
     fixedOccupancies: [], reservations: [], teachers: []
   };
 
@@ -62,6 +67,7 @@
   function escapeHtml(value) {
     return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
   }
+  function roomDisplayName(code) { return roomDisplayNames[code] || `Aula ${code}`; }
 
   function showMessage(message, type = 'success') {
     elements.systemMessage.textContent = message;
@@ -203,19 +209,20 @@
     return result;
   }
 
-  function roomOptions(all = false) { return (all ? '<option value="TODAS">Todas</option>' : '<option value="">Selecciona un aula</option>') + state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join(''); }
+  function roomOptions(all = false) { return (all ? '<option value="TODAS">Todas</option>' : '<option value="">Selecciona un aula</option>') + state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">${escapeHtml(roomDisplayName(room.code))}</option>`).join(''); }
   function populateRoomSelects() {
     elements.bookingRoom.innerHTML = roomOptions();
     elements.dialogBookingRoom.innerHTML = roomOptions();
     elements.boardRoom.innerHTML = roomOptions(true);
-    elements.editorRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
-    elements.scheduleEntryRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
+    elements.editorRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">${escapeHtml(roomDisplayName(room.code))}</option>`).join('');
+    elements.scheduleEntryRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">${escapeHtml(roomDisplayName(room.code))}</option>`).join('');
   }
   function dateBadge(value) { const date = new Date(`${value}T12:00:00`); return `<span class="booking-date"><strong>${String(date.getDate()).padStart(2, '0')}</strong><span>${monthNames[date.getMonth()]}</span></span>`; }
   function reservationCard(item, controls = false) {
     const canCancel = controls && (isAdmin() || item.user_id === state.session?.user?.id);
     const action = canCancel ? `<button class="danger-button" type="button" data-cancel-reservation="${escapeHtml(item.id)}">Cancelar</button>` : `<span class="reservation-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span>`;
-    return `<article class="${controls ? 'booking-item' : 'reservation-item'}">${controls ? dateBadge(item.reservation_date) : `<span class="room-pill">${escapeHtml(item.classrooms?.code || 'Aula')}</span>`}<div class="booking-copy"><strong>${escapeHtml(item.activity)}</strong><span>${controls ? `Aula ${escapeHtml(item.classrooms?.code)} · ` : `${escapeHtml(item.professor_name)} · `}${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}${controls ? '' : ` · ${formatDate(item.reservation_date)}`}</span></div>${action}</article>`;
+    const roomName = item.classrooms?.code ? roomDisplayName(item.classrooms.code) : 'Aula';
+    return `<article class="${controls ? 'booking-item' : 'reservation-item'}">${controls ? dateBadge(item.reservation_date) : `<span class="room-pill">${escapeHtml(roomName)}</span>`}<div class="booking-copy"><strong>${escapeHtml(item.activity)}</strong><span>${controls ? `${escapeHtml(roomName)} · ` : `${escapeHtml(item.professor_name)} · `}${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}${controls ? '' : ` · ${formatDate(item.reservation_date)}`}</span></div>${action}</article>`;
   }
   function timeToMinutes(time) { const [hours, minutes] = normalizeTime(time).split(':').map(Number); return hours * 60 + minutes; }
   function minutesToTime(minutes) { return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`; }
@@ -243,7 +250,7 @@
     if (!elements.boardDate.value) return;
     const selectedRoom = elements.boardRoom.value;
     const rooms = selectedRoom === 'TODAS' ? state.rooms : state.rooms.filter((room) => room.code === selectedRoom);
-    elements.availabilityBoard.innerHTML = rooms.map((room) => `<article class="availability-room"><h3>Aula ${escapeHtml(room.code)}</h3><div class="availability-slots">${timelineForRoom(room.code, elements.boardDate.value).map((slot) => slot.free
+    elements.availabilityBoard.innerHTML = rooms.map((room) => `<article class="availability-room"><h3>${escapeHtml(roomDisplayName(room.code))}</h3><div class="availability-slots">${timelineForRoom(room.code, elements.boardDate.value).map((slot) => slot.free
       ? `<button class="availability-slot is-free" type="button" data-reserve-room="${escapeHtml(room.code)}" data-reserve-start="${minutesToTime(slot.start)}" data-reserve-end="${minutesToTime(slot.end)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Reservar</button>`
       : `<span class="availability-slot is-busy" title="${escapeHtml(slot.label)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Ocupado</span>`).join('')}</div></article>`).join('');
   }
@@ -446,7 +453,7 @@
     state.profile = data; renderSession();
   }
   async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); }
-  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html'); }
+  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=3'); }
 
   async function saveReservation(event) {
     event.preventDefault(); clearMessage();
@@ -706,11 +713,13 @@
     [elements.bookingDate, elements.bookingRoom, elements.bookingStart, elements.bookingEnd].forEach((control) => { control.addEventListener('change', updateAvailability); control.addEventListener('input', updateAvailability); });
     [elements.dialogBookingDate, elements.dialogBookingRoom, elements.dialogBookingStart, elements.dialogBookingEnd].forEach((control) => { control.addEventListener('change', updateDialogAvailability); control.addEventListener('input', updateDialogAvailability); });
     elements.boardDate.addEventListener('change', renderPublicReservations); elements.boardRoom.addEventListener('change', renderPublicReservations);
+    elements.availabilityBoard.addEventListener('click', (event) => {
+      const reserveButton = event.target.closest('[data-reserve-room]');
+      if (reserveButton) openBookingDialog(reserveButton);
+    });
     document.addEventListener('click', (event) => {
       const cancelButton = event.target.closest('[data-cancel-reservation]');
       if (cancelButton) cancelReservation(cancelButton.dataset.cancelReservation);
-      const reserveButton = event.target.closest('[data-reserve-room]');
-      if (reserveButton) openBookingDialog(reserveButton);
       const editOccupancyButton = event.target.closest('[data-edit-occupancy]');
       if (editOccupancyButton) openScheduleDialog(state.fixedOccupancies.find((item) => String(item.id) === editOccupancyButton.dataset.editOccupancy));
       const deleteOccupancyButton = event.target.closest('[data-delete-occupancy]');
@@ -724,9 +733,9 @@
     try {
       state.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
       elements.connectionStatus.textContent = 'Sistema disponible'; const { data } = await state.client.auth.getSession(); state.session = data.session;
-      if (!state.session) { window.location.replace('ingreso.html'); return; }
+      if (!state.session) { window.location.replace('ingreso.html?v=3'); return; }
       await loadProfile(); await loadRooms(); await reloadAll();
-      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html'); });
+      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=3'); });
     } catch (error) { elements.connectionStatus.textContent = 'Conexión no disponible'; elements.connectionStatus.classList.add('is-offline'); showMessage(`No fue posible conectar con el sistema: ${error.message}`, 'error'); }
   }
   initialize();

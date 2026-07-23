@@ -43,7 +43,7 @@
   });
 
   client.auth.getSession().then(({ data }) => {
-    if (data.session) window.location.replace('reservas.html');
+    if (data.session) window.location.replace('reservas.html?v=14');
   });
 
   loginForm.addEventListener('submit', async (event) => {
@@ -61,7 +61,7 @@
       loginButton.textContent = 'Ingresar a reservas';
       return;
     }
-    window.location.replace('reservas.html');
+    window.location.replace('reservas.html?v=14');
   });
 
   registerForm.addEventListener('submit', async (event) => {

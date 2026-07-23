@@ -331,7 +331,7 @@
         </div>
       </div>
       <div class="institutional-lockup">
-        <a class="session-button" href="ingreso.html">Ingreso docente</a>
+        <a class="session-button" href="ingreso.html?v=3">Ingreso docente</a>
         <div class="report-meta"><strong>Periodo: II Ciclo 2026</strong>Reporte base 10/07/2026</div>
         <span class="brand-divider" aria-hidden="true"></span>
         <a class="logo-link logo-una" href="https://www.una.ac.cr/" target="_blank" rel="noopener" aria-label="Universidad Nacional, Costa Rica">
@@ -1269,6 +1269,12 @@
     const DAYS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     const TURNS = ['Mañana', 'Tarde', 'Noche'];
     const AULAS = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
+    const ROOM_DISPLAY_NAMES = {
+      L601: 'Laboratorio L01',
+      L602: 'Laboratorio L602',
+      L603: 'Laboratorio L603'
+    };
+    const roomDisplayName = aula => ROOM_DISPLAY_NAMES[aula] || `Aula ${aula}`;
 
     const root = document.getElementById('scheduleRoot');
     const aulaFilter = document.getElementById('aulaFilter');
@@ -1282,7 +1288,7 @@
     AULAS.forEach(aula => {
       const opt = document.createElement('option');
       opt.value = aula;
-      opt.textContent = `Aula ${aula}`;
+      opt.textContent = roomDisplayName(aula);
       aulaFilter.appendChild(opt);
     });
 
@@ -1355,11 +1361,11 @@
       const count = data.filter(r => r.aula === aula).length;
       section.innerHTML = `
         <div class="aula-head">
-          <h2>Aula ${escapeHtml(aula)}</h2>
+          <h2>${escapeHtml(roomDisplayName(aula))}</h2>
           <span>${count} registro${count === 1 ? '' : 's'} de ocupación</span>
         </div>
         <div class="schedule-wrap">
-          <table class="schedule" aria-label="Horario del aula ${escapeHtml(aula)}">
+          <table class="schedule" aria-label="Horario de ${escapeHtml(roomDisplayName(aula))}">
             <thead>
               <tr><th>Jornada</th>${DAYS.map(day => `<th>${day}</th>`).join('')}</tr>
             </thead>
@@ -1407,7 +1413,7 @@
       const tbody = document.createElement('tbody');
       data.forEach(record => {
         const tr = document.createElement('tr');
-        tr.innerHTML = keys.map(k => `<td>${escapeHtml(record[k])}</td>`).join('');
+        tr.innerHTML = keys.map(k => `<td>${escapeHtml(k === 'aula' ? roomDisplayName(record[k]) : record[k])}</td>`).join('');
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
@@ -1423,7 +1429,7 @@
           <span class="label">NRC</span><span class="value">${escapeHtml(record.nrc)}</span>
           <span class="label">Grupo</span><span class="value">${escapeHtml(record.grupo)}</span>
           <span class="label">Horario</span><span class="value">${escapeHtml(record.dia)} · ${escapeHtml(record.hora)}</span>
-          <span class="label">Aula</span><span class="value">${escapeHtml(record.aula)}</span>
+          <span class="label">Aula</span><span class="value">${escapeHtml(roomDisplayName(record.aula))}</span>
           <span class="label">Jornada</span><span class="value">${escapeHtml(record.turno)}</span>
         </div>
       `;
