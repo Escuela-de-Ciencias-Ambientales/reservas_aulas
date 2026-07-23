@@ -33,6 +33,13 @@
     usersFile: byId('usersFile'), usersFileSummary: byId('usersFileSummary'), uploadUsersButton: byId('uploadUsersButton'),
     adminProfessorField: byId('adminProfessorField'), bookingProfessor: byId('bookingProfessor'),
     adminAccessLabel: byId('adminAccessLabel'), editorRoom: byId('editorRoom'), weeklyEditor: byId('weeklyEditor'),
+    bookingDialog: byId('bookingDialog'), bookingDialogForm: byId('bookingDialogForm'),
+    dialogBookingDate: byId('dialogBookingDate'), dialogBookingRoom: byId('dialogBookingRoom'),
+    dialogBookingStart: byId('dialogBookingStart'), dialogBookingEnd: byId('dialogBookingEnd'),
+    dialogAdminProfessorField: byId('dialogAdminProfessorField'), dialogBookingProfessor: byId('dialogBookingProfessor'),
+    dialogBookingActivity: byId('dialogBookingActivity'), dialogAvailabilityCheck: byId('dialogAvailabilityCheck'),
+    closeBookingDialog: byId('closeBookingDialog'), cancelBookingDialog: byId('cancelBookingDialog'),
+    saveDialogBookingButton: byId('saveDialogBookingButton'),
     scheduleDialog: byId('scheduleDialog'), scheduleEntryForm: byId('scheduleEntryForm'), scheduleDialogTitle: byId('scheduleDialogTitle'),
     scheduleEntryId: byId('scheduleEntryId'), scheduleEntryRoom: byId('scheduleEntryRoom'), scheduleEntryDay: byId('scheduleEntryDay'),
     scheduleEntryStart: byId('scheduleEntryStart'), scheduleEntryEnd: byId('scheduleEntryEnd'),
@@ -127,7 +134,7 @@
       : 'La consulta continúa disponible. Solo la administración puede habilitar nuevas reservas.';
     setCycleStateBadge(elements.cycleState, open ? 'Reservas abiertas' : waiting ? 'Fuera de horario' : 'Reservas cerradas', open ? 'is-open' : waiting ? 'is-waiting' : 'is-closed');
 
-    [elements.bookingDate, elements.boardDate].forEach((input) => { input.min = cycle.reservation_start_date; input.max = cycle.reservation_end_date; });
+    [elements.bookingDate, elements.boardDate, elements.dialogBookingDate].forEach((input) => { input.min = cycle.reservation_start_date; input.max = cycle.reservation_end_date; });
     if (!elements.bookingDate.value || elements.bookingDate.value < cycle.reservation_start_date || elements.bookingDate.value > cycle.reservation_end_date) elements.bookingDate.value = initialDate();
     if (!elements.boardDate.value || elements.boardDate.value < cycle.reservation_start_date || elements.boardDate.value > cycle.reservation_end_date) elements.boardDate.value = initialDate();
 
@@ -182,10 +189,24 @@
     elements.saveBookingButton.disabled = !result.ok || !isConfigured;
     return result;
   }
+  function updateDialogAvailability() {
+    const result = validateSlot({
+      room: elements.dialogBookingRoom.value,
+      date: elements.dialogBookingDate.value,
+      start: elements.dialogBookingStart.value,
+      end: elements.dialogBookingEnd.value
+    });
+    elements.dialogAvailabilityCheck.textContent = result.message;
+    elements.dialogAvailabilityCheck.classList.toggle('is-available', result.ok);
+    elements.dialogAvailabilityCheck.classList.toggle('is-conflict', !result.ok);
+    elements.saveDialogBookingButton.disabled = !result.ok || !isConfigured;
+    return result;
+  }
 
   function roomOptions(all = false) { return (all ? '<option value="TODAS">Todas</option>' : '<option value="">Selecciona un aula</option>') + state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join(''); }
   function populateRoomSelects() {
     elements.bookingRoom.innerHTML = roomOptions();
+    elements.dialogBookingRoom.innerHTML = roomOptions();
     elements.boardRoom.innerHTML = roomOptions(true);
     elements.editorRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
     elements.scheduleEntryRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">Aula ${escapeHtml(room.code)}</option>`).join('');
@@ -226,15 +247,18 @@
       ? `<button class="availability-slot is-free" type="button" data-reserve-room="${escapeHtml(room.code)}" data-reserve-start="${minutesToTime(slot.start)}" data-reserve-end="${minutesToTime(slot.end)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Reservar</button>`
       : `<span class="availability-slot is-busy" title="${escapeHtml(slot.label)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Ocupado</span>`).join('')}</div></article>`).join('');
   }
-  function selectAvailableSlot(button) {
-    elements.bookingDate.value = elements.boardDate.value;
-    elements.bookingRoom.value = button.dataset.reserveRoom;
-    elements.bookingStart.value = button.dataset.reserveStart;
-    elements.bookingEnd.value = button.dataset.reserveEnd;
-    updateAvailability();
-    elements.bookingForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    window.setTimeout(() => elements.bookingActivity.focus(), 450);
+  function openBookingDialog(button) {
+    elements.bookingDialogForm.reset();
+    elements.dialogBookingDate.value = elements.boardDate.value;
+    elements.dialogBookingRoom.value = button.dataset.reserveRoom;
+    elements.dialogBookingStart.value = button.dataset.reserveStart;
+    elements.dialogBookingEnd.value = button.dataset.reserveEnd;
+    if (isAdmin() && elements.bookingProfessor.value) elements.dialogBookingProfessor.value = elements.bookingProfessor.value;
+    updateDialogAvailability();
+    if (!elements.bookingDialog.open) elements.bookingDialog.showModal();
+    window.setTimeout(() => elements.dialogBookingActivity.focus(), 80);
   }
+  function closeBookingDialog() { elements.bookingDialog.close(); }
   function renderPublicReservations() {
     const date = elements.boardDate.value, room = elements.boardRoom.value;
     const list = state.reservations.filter((item) => item.status === 'active' && item.reservation_date === date && (room === 'TODAS' || item.classrooms?.code === room)).sort((a, b) => a.start_time.localeCompare(b.start_time));
@@ -259,14 +283,17 @@
     elements.currentUserName.textContent = state.profile.full_name;
     elements.currentUserRole.textContent = isSuperadmin() ? 'Superadministrador' : isAdmin() ? 'Administrador de reservas' : 'Docente';
     elements.adminProfessorField.hidden = !isAdmin();
+    elements.dialogAdminProfessorField.hidden = !isAdmin();
     elements.adminAccessLabel.textContent = isSuperadmin() ? 'Acceso de superadministrador' : 'Acceso de administración de reservas';
     document.querySelectorAll('.superadmin-only').forEach((element) => { element.hidden = !isSuperadmin(); });
     renderCycle(); renderMyReservations(); renderAdminReservations();
   }
   function populateTeacherSelect() {
-    elements.bookingProfessor.innerHTML = state.teachers.length
+    const options = state.teachers.length
       ? state.teachers.map((teacher) => `<option value="${escapeHtml(teacher.id)}">${escapeHtml(teacher.full_name)}</option>`).join('')
       : '<option value="">No hay docentes activos</option>';
+    elements.bookingProfessor.innerHTML = options;
+    elements.dialogBookingProfessor.innerHTML = options;
   }
   function shiftForTime(time) {
     const minutes = timeToMinutes(time);
@@ -442,6 +469,68 @@
     } catch (error) { showMessage(error.code === '23P01' ? 'El aula ya está ocupada en ese horario.' : error.message, 'error'); }
     finally { setBusy(elements.saveBookingButton, false); updateAvailability(); }
   }
+  async function saveDialogReservation(event) {
+    event.preventDefault(); clearMessage();
+    const slot = {
+      room: elements.dialogBookingRoom.value,
+      date: elements.dialogBookingDate.value,
+      start: elements.dialogBookingStart.value,
+      end: elements.dialogBookingEnd.value
+    };
+    const validation = updateDialogAvailability();
+    if (!validation.ok) return;
+    const activity = elements.dialogBookingActivity.value.trim();
+    if (activity.length < 3) {
+      elements.dialogAvailabilityCheck.textContent = 'Describe la actividad que se realizará.';
+      elements.dialogAvailabilityCheck.classList.remove('is-available');
+      elements.dialogAvailabilityCheck.classList.add('is-conflict');
+      return;
+    }
+    const room = state.rooms.find((item) => item.code === slot.room);
+    if (!room?.id) {
+      elements.dialogAvailabilityCheck.textContent = 'No se encontró el aula seleccionada.';
+      elements.dialogAvailabilityCheck.classList.add('is-conflict');
+      return;
+    }
+    if (isAdmin() && !elements.dialogBookingProfessor.value) {
+      elements.dialogAvailabilityCheck.textContent = 'Selecciona el profesor para quien se realizará la reserva.';
+      elements.dialogAvailabilityCheck.classList.add('is-conflict');
+      return;
+    }
+    setBusy(elements.saveDialogBookingButton, true, 'Guardando…');
+    try {
+      const request = isAdmin()
+        ? await state.client.rpc('admin_create_reservation', {
+          p_user_id: elements.dialogBookingProfessor.value,
+          p_classroom_id: room.id,
+          p_date: slot.date,
+          p_start: slot.start,
+          p_end: slot.end,
+          p_activity: activity
+        })
+        : await state.client.from('reservations').insert({
+          cycle_id: state.cycle.id,
+          user_id: state.session.user.id,
+          classroom_id: room.id,
+          reservation_date: slot.date,
+          start_time: slot.start,
+          end_time: slot.end,
+          activity,
+          professor_name: state.profile.full_name
+        });
+      const { error } = request;
+      if (error) throw error;
+      closeBookingDialog();
+      await loadReservations();
+      showMessage('Reserva guardada correctamente.');
+    } catch (error) {
+      elements.dialogAvailabilityCheck.textContent = error.code === '23P01' ? 'El aula ya está ocupada en ese horario.' : error.message;
+      elements.dialogAvailabilityCheck.classList.remove('is-available');
+      elements.dialogAvailabilityCheck.classList.add('is-conflict');
+    } finally {
+      setBusy(elements.saveDialogBookingButton, false);
+    }
+  }
   async function cancelReservation(id) { if (!window.confirm('¿Deseas cancelar esta reserva?')) return; clearMessage(); const { error } = await state.client.from('reservations').update({ status: 'cancelled' }).eq('id', id); if (error) return showMessage(error.message, 'error'); await loadReservations(); showMessage('La reserva fue cancelada.'); }
   async function changePassword(event) {
     event.preventDefault(); clearMessage();
@@ -591,6 +680,9 @@
     elements.logoutButton.addEventListener('click', signOut); elements.bookingForm.addEventListener('submit', saveReservation); elements.createUserForm.addEventListener('submit', createUser); elements.cycleForm.addEventListener('submit', configureCycle);
     elements.changePasswordForm.addEventListener('submit', changePassword); elements.uploadUsersButton.addEventListener('click', uploadUsers);
     elements.editorRoom.addEventListener('change', renderWeeklyEditor);
+    elements.bookingDialogForm.addEventListener('submit', saveDialogReservation);
+    elements.closeBookingDialog.addEventListener('click', closeBookingDialog);
+    elements.cancelBookingDialog.addEventListener('click', closeBookingDialog);
     elements.scheduleEntryForm.addEventListener('submit', saveScheduleEntry);
     elements.closeScheduleDialog.addEventListener('click', closeScheduleEditor);
     elements.cancelScheduleDialog.addEventListener('click', closeScheduleEditor);
@@ -609,12 +701,13 @@
     });
     elements.refreshButton.addEventListener('click', async () => { await reloadAll(); showMessage('Información actualizada.'); });
     [elements.bookingDate, elements.bookingRoom, elements.bookingStart, elements.bookingEnd].forEach((control) => { control.addEventListener('change', updateAvailability); control.addEventListener('input', updateAvailability); });
+    [elements.dialogBookingDate, elements.dialogBookingRoom, elements.dialogBookingStart, elements.dialogBookingEnd].forEach((control) => { control.addEventListener('change', updateDialogAvailability); control.addEventListener('input', updateDialogAvailability); });
     elements.boardDate.addEventListener('change', renderPublicReservations); elements.boardRoom.addEventListener('change', renderPublicReservations);
     document.addEventListener('click', (event) => {
       const cancelButton = event.target.closest('[data-cancel-reservation]');
       if (cancelButton) cancelReservation(cancelButton.dataset.cancelReservation);
       const reserveButton = event.target.closest('[data-reserve-room]');
-      if (reserveButton) selectAvailableSlot(reserveButton);
+      if (reserveButton) openBookingDialog(reserveButton);
       const editOccupancyButton = event.target.closest('[data-edit-occupancy]');
       if (editOccupancyButton) openScheduleDialog(state.fixedOccupancies.find((item) => String(item.id) === editOccupancyButton.dataset.editOccupancy));
       const deleteOccupancyButton = event.target.closest('[data-delete-occupancy]');

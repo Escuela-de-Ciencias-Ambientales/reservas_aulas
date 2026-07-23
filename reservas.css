@@ -402,6 +402,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .schedule-details-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0 14px; margin-top:4px; }
 .schedule-field-wide { grid-column:1 / -1; }
 .schedule-dialog-help { margin:12px 0 0; color:var(--reserve-muted); font-size:13px; line-height:1.45; }
+.booking-dialog-intro { margin:10px 0 2px; color:var(--reserve-muted); font-size:14px; line-height:1.45; }
 .dialog-heading,.dialog-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .dialog-heading h2 { margin:0; }
 .dialog-close { width:42px; height:42px; border:0; border-radius:50%; color:var(--reserve-muted); background:#f1f5f3; font-size:25px; cursor:pointer; }

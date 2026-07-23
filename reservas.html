@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=11" />
+  <link rel="stylesheet" href="reservas.css?v=12" />
 </head>
 <body>
   <header class="private-header">
@@ -186,6 +186,33 @@
     </section>
   </main>
 
+  <dialog class="schedule-dialog booking-dialog" id="bookingDialog">
+    <form id="bookingDialogForm" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Reservación de aulas</p><h2>Crear reserva</h2></div>
+        <button class="dialog-close" id="closeBookingDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="booking-dialog-intro">El aula, la fecha y el tramo seleccionado ya están precargados. Puedes ajustar las horas dentro del espacio disponible.</p>
+      <div class="field-grid">
+        <div><label for="dialogBookingDate">Fecha</label><input id="dialogBookingDate" type="date" required /></div>
+        <div><label for="dialogBookingRoom">Aula</label><select id="dialogBookingRoom" required></select></div>
+        <div><label for="dialogBookingStart">Hora de inicio</label><input id="dialogBookingStart" type="time" min="07:00" max="21:00" step="1800" required /></div>
+        <div><label for="dialogBookingEnd">Hora de finalización</label><input id="dialogBookingEnd" type="time" min="07:30" max="21:00" step="1800" required /></div>
+      </div>
+      <div id="dialogAdminProfessorField" hidden>
+        <label for="dialogBookingProfessor">Reservar a nombre de</label>
+        <select id="dialogBookingProfessor"></select>
+      </div>
+      <label for="dialogBookingActivity">Actividad</label>
+      <input id="dialogBookingActivity" type="text" maxlength="120" placeholder="Ej.: Reunión de proyecto" required />
+      <div class="availability-check" id="dialogAvailabilityCheck">Horario disponible.</div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelBookingDialog" type="button">Cancelar</button>
+        <button class="primary-button compact-button" id="saveDialogBookingButton" type="submit">Guardar reserva</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog class="schedule-dialog" id="scheduleDialog">
     <form id="scheduleEntryForm" method="dialog">
       <div class="dialog-heading">
@@ -233,6 +260,6 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=11"></script>
+  <script src="reservas.js?v=12"></script>
 </body>
 </html>
