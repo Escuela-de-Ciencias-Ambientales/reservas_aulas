@@ -17,7 +17,7 @@
   const localDateTime = (date) => `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   const formatDateTime = (value) => new Intl.DateTimeFormat('es-CR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
-  const vehicleImage = (value = '') => String(value).replace(/\.webp$/i, '.jpg');
+  const vehicleImage = (value = '') => String(value).replace(/\.(webp|jpe?g)$/i, '.png');
 
   function setMessage(element, text, success = false) {
     if (!element) return;

@@ -19,7 +19,7 @@
   const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
   const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
-  const vehicleImage = (value = '') => String(value).replace(/\.webp$/i, '.jpg');
+  const vehicleImage = (value = '') => String(value).replace(/\.(webp|jpe?g)$/i, '.png');
 
   function setModule(module) {
     const vehicles = module === 'vehicles';

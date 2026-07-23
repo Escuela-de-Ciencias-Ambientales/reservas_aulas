@@ -14,8 +14,8 @@ create table if not exists public.vehicles (
 
 insert into public.vehicles (plate, make, model, model_year, display_name, image_path, sort_order)
 values
-  ('301-419', 'Mitsubishi', 'L200', 2012, 'Mitsubishi L200 2012', 'vehiculo-mitsubishi-l200.jpg', 1),
-  ('301-599', 'Toyota', 'Hilux', 2025, 'Toyota Hilux 2025', 'vehiculo-toyota-hilux.jpg', 2)
+  ('301-419', 'Mitsubishi', 'L200', 2012, 'Mitsubishi L200 2012', 'vehiculo-mitsubishi-l200.png', 1),
+  ('301-599', 'Toyota', 'Hilux', 2025, 'Toyota Hilux 2025', 'vehiculo-toyota-hilux.png', 2)
 on conflict (plate) do update set
   make = excluded.make,
   model = excluded.model,
