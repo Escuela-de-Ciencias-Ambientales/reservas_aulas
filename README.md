@@ -17,7 +17,9 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Creación de cuentas docentes y administrativas desde el panel maestro.
 - Diseño adaptable para computadora, tableta y teléfono.
 - Registro de cancelaciones y reglas de seguridad en la base de datos.
-- Reservas habilitadas hasta el 20 de diciembre de 2026.
+- Ciclos configurables por la administración, incluidas las fechas reservables y la ventana de apertura del sistema.
+- Reservas cerradas por defecto: solo pueden abrirse después de cargar la ocupación académica prioritaria.
+- Carga y reemplazo del horario de clases mediante una plantilla CSV desde el panel maestro.
 
 ## Estructura
 
@@ -29,14 +31,15 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - `reservas.js`: autenticación, disponibilidad, reservas y administración.
 - `config.js`: conexión pública con Supabase.
 - `supabase/migrations/`: esquema, restricciones y políticas de seguridad.
-- `supabase/seed.sql`: 56 ocupaciones académicas que bloquean reservas.
+- `supabase/seed.sql`: ocupaciones académicas iniciales que bloquean reservas.
+- `plantilla_ocupacion.csv`: plantilla para cargar las clases de cada nuevo ciclo.
 - `supabase/functions/admin-create-user/`: función segura para crear cuentas.
 - `.github/workflows/pages.yml`: publicación automática en GitHub Pages.
 
 ## Configuración de Supabase
 
 1. Crear un proyecto de Supabase.
-2. Ejecutar la migración `supabase/migrations/202607220001_reservation_system.sql`.
+2. Ejecutar, en orden, las migraciones de `supabase/migrations/`.
 3. Ejecutar `supabase/seed.sql`.
 4. Desplegar la función `admin-create-user`.
 5. En Authentication, desactivar el registro público de usuarios.
@@ -52,9 +55,13 @@ La clave `anon` de Supabase está diseñada para utilizarse en el navegador. La 
 
 La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear las cuentas de los docentes desde la propia página. Cada profesor accede con una contraseña única y un correo con el formato `nombre.apellido.apellido@una.cr`. Su perfil visible muestra únicamente su nombre.
 
+## Apertura de cada ciclo
+
+El administrador configura el nombre y las fechas del ciclo, así como la apertura y el cierre del sistema. Guardar la configuración deja las reservas cerradas. Después se carga la ocupación académica con `plantilla_ocupacion.csv`; esta operación reemplaza el horario fijo del ciclo y también mantiene el sistema cerrado. Solo entonces se habilita el botón **Abrir reservas**. Las clases cargadas siempre tienen prioridad sobre las solicitudes docentes.
+
 ## Seguridad
 
-La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. El administrador puede gestionar todas. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Un disparador adicional bloquea cruces con el horario académico fijo y otro impide superar las 50 cuentas docentes.
+La base de datos aplica políticas RLS. Un docente solo puede crear reservas a su nombre y cancelar las propias. El administrador puede gestionar todas. La restricción de exclusión de PostgreSQL impide reservas simultáneas incluso si dos personas intentan guardar al mismo tiempo. Las reglas de la base de datos impiden reservar fuera del ciclo, con el sistema cerrado o sobre una clase, y otro control impide superar las 50 cuentas docentes.
 
 ## Desarrollo local
 

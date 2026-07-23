@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=3" />
+  <link rel="stylesheet" href="reservas.css?v=4" />
 </head>
 <body>
   <header class="private-header">
@@ -26,12 +26,21 @@
       <div>
         <p class="eyebrow">Área docente</p>
         <h1>Reservación de aulas</h1>
-        <p>Consulta los espacios disponibles y confirma tu reserva hasta el 20 de diciembre de 2026.</p>
+        <p id="cycleDescription">Consulta la disponibilidad de las aulas y confirma tu reserva cuando el periodo esté habilitado.</p>
       </div>
       <span class="connection-status" id="connectionStatus">Preparando conexión…</span>
     </section>
 
     <div class="system-message" id="systemMessage" role="status" aria-live="polite" hidden></div>
+
+    <section class="cycle-banner panel" id="cycleBanner" hidden aria-live="polite">
+      <div>
+        <p class="eyebrow">Periodo de reservación</p>
+        <h2 id="cycleName">Periodo sin configurar</h2>
+        <p id="cycleDates"></p>
+      </div>
+      <span class="cycle-state is-closed" id="cycleState">Cerrado</span>
+    </section>
 
     <section class="user-view" id="userView" hidden>
       <div class="account-strip">
@@ -82,6 +91,34 @@
 
     <section class="admin-panel panel" id="adminPanel" aria-labelledby="adminTitle" hidden>
       <div class="section-heading"><div><p class="eyebrow">Acceso maestro</p><h2 id="adminTitle">Administración</h2></div></div>
+      <section class="cycle-admin" aria-labelledby="cycleAdminTitle">
+        <div class="section-heading compact-heading">
+          <div><h3 id="cycleAdminTitle">Control del ciclo</h3><p>Primero configura el periodo y carga la ocupación académica. Después podrás abrir las reservas.</p></div>
+          <span class="cycle-state is-closed" id="adminCycleState">Cerrado</span>
+        </div>
+        <form id="cycleForm" class="cycle-form">
+          <div><label for="adminCycleName">Nombre del ciclo</label><input id="adminCycleName" name="name" placeholder="I Ciclo 2027" maxlength="80" required /></div>
+          <div><label for="adminReservationStart">Reservas desde</label><input id="adminReservationStart" name="reservationStart" type="date" required /></div>
+          <div><label for="adminReservationEnd">Reservas hasta</label><input id="adminReservationEnd" name="reservationEnd" type="date" required /></div>
+          <div><label for="adminAcademicEnd">Ocupación de clases hasta</label><input id="adminAcademicEnd" name="academicEnd" type="date" required /></div>
+          <div><label for="adminOpensAt">Apertura del sistema</label><input id="adminOpensAt" name="opensAt" type="datetime-local" required /></div>
+          <div><label for="adminClosesAt">Cierre del sistema</label><input id="adminClosesAt" name="closesAt" type="datetime-local" required /></div>
+          <button class="primary-button" type="submit">Guardar configuración y mantener cerrado</button>
+        </form>
+        <div class="schedule-upload">
+          <div><h3>Ocupación académica prioritaria</h3><p id="scheduleStatus">Aún no se ha cargado para este ciclo.</p></div>
+          <div class="upload-actions">
+            <a class="secondary-button" href="plantilla_ocupacion.csv" download>Descargar plantilla CSV</a>
+            <label class="secondary-button file-button" for="scheduleFile">Seleccionar CSV</label>
+            <input id="scheduleFile" type="file" accept=".csv,text/csv" />
+            <button class="primary-button compact-button" id="uploadScheduleButton" type="button">Cargar y reemplazar horario</button>
+          </div>
+        </div>
+        <div class="cycle-actions">
+          <p id="cycleActionHelp">Las reservas permanecerán cerradas hasta completar la configuración.</p>
+          <button class="primary-button compact-button" id="toggleReservationsButton" type="button" disabled>Abrir reservas</button>
+        </div>
+      </section>
       <div class="admin-grid">
         <form class="admin-form" id="createUserForm">
           <h3>Crear cuenta docente</h3>
@@ -98,7 +135,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=3"></script>
-  <script src="reservas.js?v=3"></script>
+  <script src="config.js?v=4"></script>
+  <script src="reservas.js?v=4"></script>
 </body>
 </html>

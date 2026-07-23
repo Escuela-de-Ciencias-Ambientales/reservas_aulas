@@ -1,4 +1,9 @@
-with schedule(code, day_of_week, start_time, end_time, label) as (
+delete from public.fixed_occupancies
+where cycle_id = (select id from public.reservation_cycles where is_current = true limit 1);
+
+with current_cycle as (
+  select id from public.reservation_cycles where is_current = true limit 1
+), schedule(code, day_of_week, start_time, end_time, label) as (
   values
     ('L601', 1, time '08:00', time '12:10', 'AME408 · PABLO RAMIREZ GRANADOS'),
     ('L601', 1, time '13:00', time '16:00', 'AMQ414 · JOSE CASTRO SOLIS'),
@@ -57,7 +62,12 @@ with schedule(code, day_of_week, start_time, end_time, label) as (
     ('711', 2, time '13:00', time '16:00', 'AMQ110O · MARIA ALVAREZ JIMENEZ'),
     ('711', 3, time '17:01', time '18:40', 'AMQ433 · IGOR ZUÑIGA GARITA')
 )
-insert into public.fixed_occupancies (classroom_id, day_of_week, start_time, end_time, label)
-select classrooms.id, schedule.day_of_week, schedule.start_time, schedule.end_time, schedule.label
+insert into public.fixed_occupancies (cycle_id, classroom_id, day_of_week, start_time, end_time, label)
+select current_cycle.id, classrooms.id, schedule.day_of_week, schedule.start_time, schedule.end_time, schedule.label
 from schedule
-join public.classrooms on classrooms.code = schedule.code;
+join public.classrooms on classrooms.code = schedule.code
+cross join current_cycle;
+
+update public.reservation_cycles
+set academic_schedule_loaded = true, reservations_enabled = false
+where is_current = true;
