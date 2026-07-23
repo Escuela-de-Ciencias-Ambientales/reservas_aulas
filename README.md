@@ -19,7 +19,7 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Acceso maestro para consultar y cancelar cualquier reserva.
 - Dos niveles administrativos: superadministrador y administrador de reservas.
 - El superadministrador controla ciclos, roles administrativos y cargas masivas de docentes.
-- El administrador de reservas puede crear docentes, gestionar reservas y editar la ocupación académica.
+- El administrador de reservas puede crear docentes, gestionar reservas y editar la ocupación académica únicamente desde el calendario semanal.
 - Editor semanal visual para crear, modificar o eliminar cursos directamente en cada bloque del aula.
 - Creación individual de cuentas y carga masiva de docentes autorizados mediante Excel.
 - Diseño adaptable para computadora, tableta y teléfono.
@@ -62,7 +62,7 @@ La clave `anon` de Supabase está diseñada para utilizarse en el navegador. La 
 
 ## Flujo de cuentas
 
-La primera cuenta maestra queda configurada como superadministrador. Solo ese perfil puede crear otros superadministradores, administradores de reservas o realizar cargas masivas de docentes. El administrador de reservas puede crear cuentas docentes individuales, gestionar reservas y modificar el horario, pero no puede consultar ni modificar la lista masiva de docentes autorizados. Si una fila del Excel no contiene contraseña, el correo queda autorizado para que el profesor complete su registro inicial; si contiene una contraseña válida, la cuenta se crea inmediatamente.
+La primera cuenta maestra queda configurada como superadministrador. Solo ese perfil puede crear otros superadministradores, administradores de reservas o realizar cargas masivas de docentes y horarios. El administrador de reservas puede crear cuentas docentes individuales, gestionar reservas y modificar el horario directamente en el calendario semanal, pero no puede consultar ni modificar listas masivas. Si una fila del Excel no contiene contraseña, el correo queda autorizado para que el profesor complete su registro inicial; si contiene una contraseña válida, la cuenta se crea inmediatamente.
 
 ## Apertura de cada ciclo
 
