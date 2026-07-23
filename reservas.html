@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=10" />
+  <link rel="stylesheet" href="reservas.css?v=11" />
 </head>
 <body>
   <header class="private-header">
@@ -84,8 +84,20 @@
           <p>Usa al menos 8 caracteres, una letra mayúscula y un número.</p>
         </div>
         <form id="changePasswordForm" class="password-form">
-          <div><label for="newPassword">Nueva contraseña</label><input id="newPassword" name="password" type="password" minlength="8" autocomplete="new-password" required /></div>
-          <div><label for="confirmPassword">Confirmar contraseña</label><input id="confirmPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required /></div>
+          <div>
+            <label for="newPassword">Nueva contraseña</label>
+            <div class="password-input">
+              <input id="newPassword" name="password" type="password" minlength="8" autocomplete="new-password" required />
+              <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="newPassword"><span class="password-eye" aria-hidden="true"></span></button>
+            </div>
+          </div>
+          <div>
+            <label for="confirmPassword">Confirmar contraseña</label>
+            <div class="password-input">
+              <input id="confirmPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required />
+              <button class="password-toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" aria-controls="confirmPassword"><span class="password-eye" aria-hidden="true"></span></button>
+            </div>
+          </div>
           <button class="primary-button compact-button" type="submit">Actualizar contraseña</button>
         </form>
       </section>
@@ -220,7 +232,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
-  <script src="password-toggle.js?v=1"></script>
+  <script src="password-toggle.js?v=2"></script>
   <script src="reservas.js?v=10"></script>
 </body>
 </html>

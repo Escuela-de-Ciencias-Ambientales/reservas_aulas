@@ -609,7 +609,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 }
 .password-input { position:relative; width:100%; }
 .password-input input { padding-right:52px; }
-.password-toggle { position:absolute; z-index:2; top:50%; right:8px; width:38px !important; min-height:38px !important; margin:0 !important; padding:0 !important; transform:translateY(-50%); border:0; border-radius:9px; color:var(--reserve-muted); background:transparent !important; box-shadow:none !important; cursor:pointer; }
+.password-toggle { position:absolute; z-index:2; top:50%; right:7px; display:grid; width:40px !important; min-height:40px !important; margin:0 !important; padding:0 !important; place-items:center; transform:translateY(-50%); border:1px solid #d7e3de; border-radius:9px; color:var(--reserve-green); background:#f1f7f4 !important; box-shadow:none !important; cursor:pointer; }
 .password-toggle:hover,.password-toggle:focus-visible { color:var(--reserve-green); background:var(--reserve-green-soft) !important; outline:2px solid rgba(8,122,85,.18); }
 .password-eye { position:absolute; top:50%; left:50%; width:20px; height:13px; transform:translate(-50%,-50%) rotate(-2deg); border:2px solid currentColor; border-radius:70% 20% 70% 20%; }
 .password-eye::after { position:absolute; top:50%; left:50%; width:5px; height:5px; content:""; transform:translate(-50%,-50%); border-radius:50%; background:currentColor; }

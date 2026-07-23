@@ -2,20 +2,27 @@
   'use strict';
 
   document.querySelectorAll('input[type="password"]').forEach((input) => {
-    if (input.closest('.password-input')) return;
+    let wrapper = input.closest('.password-input');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'password-input';
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+    }
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'password-input';
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-
-    const button = document.createElement('button');
-    button.className = 'password-toggle';
-    button.type = 'button';
-    button.setAttribute('aria-label', 'Mostrar contraseña');
-    button.setAttribute('aria-pressed', 'false');
-    button.innerHTML = '<span class="password-eye" aria-hidden="true"></span>';
-    wrapper.appendChild(button);
+    let button = wrapper.querySelector('.password-toggle');
+    if (!button) {
+      button = document.createElement('button');
+      button.className = 'password-toggle';
+      button.type = 'button';
+      button.setAttribute('aria-label', 'Mostrar contraseña');
+      button.setAttribute('aria-pressed', 'false');
+      button.innerHTML = '<span class="password-eye" aria-hidden="true"></span>';
+      wrapper.appendChild(button);
+    }
+    if (button.dataset.passwordToggleReady === 'true') return;
+    button.dataset.passwordToggleReady = 'true';
+    button.setAttribute('aria-controls', input.id);
 
     button.addEventListener('click', () => {
       const isVisible = input.type === 'text';
