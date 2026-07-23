@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=9" />
+  <link rel="stylesheet" href="reservas.css?v=10" />
 </head>
 <body>
   <header class="private-header">
@@ -145,15 +145,18 @@
         <div class="weekly-editor" id="weeklyEditor" aria-live="polite"></div>
       </section>
       <div class="account-management-grid">
-        <form class="admin-form" id="createUserForm">
-          <h3>Crear una cuenta</h3>
-          <p class="form-note account-limit-note">Máximo permitido: 50 cuentas docentes activas.</p>
-          <label for="newUserName">Nombre completo</label><input id="newUserName" name="name" maxlength="100" required />
-          <label for="newUserEmail">Correo electrónico</label><input id="newUserEmail" name="email" type="email" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
-          <label for="newUserPassword">Contraseña temporal</label><input id="newUserPassword" name="password" type="password" minlength="8" pattern="(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Mínimo 8 caracteres, una mayúscula y un número" required />
-          <label class="superadmin-only" for="newUserRole">Tipo de acceso</label><select class="superadmin-only" id="newUserRole" name="role"><option value="teacher">Docente</option><option value="reservation_admin">Administrador de reservas</option><option value="admin">Superadministrador</option></select>
-          <button class="primary-button" type="submit">Crear cuenta</button>
-        </form>
+        <div class="account-form-column">
+          <div class="form-message" id="createUserMessage" role="status" aria-live="polite" hidden></div>
+          <form class="admin-form" id="createUserForm" novalidate>
+            <h3>Crear una cuenta</h3>
+            <p class="form-note account-limit-note">Máximo permitido: 50 cuentas docentes activas.</p>
+            <label for="newUserName">Nombre completo</label><input id="newUserName" name="name" maxlength="100" required />
+            <label for="newUserEmail">Correo electrónico</label><input id="newUserEmail" name="email" type="email" placeholder="nombre.apellido.apellido@una.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
+            <label for="newUserPassword">Contraseña temporal</label><input id="newUserPassword" name="password" type="password" minlength="8" title="Mínimo 8 caracteres, una mayúscula y un número" required />
+            <label class="superadmin-only" for="newUserRole">Tipo de acceso</label><select class="superadmin-only" id="newUserRole" name="role"><option value="teacher">Docente</option><option value="reservation_admin">Administrador de reservas</option><option value="admin">Superadministrador</option></select>
+            <button class="primary-button" type="submit">Crear cuenta</button>
+          </form>
+        </div>
         <section class="bulk-users-card superadmin-only" id="bulkUsersCard">
           <h3>Cargar docentes desde Excel</h3>
           <p>Nombre y correo autorizan el registro personal. Si agregas una contraseña temporal, la cuenta se crea de inmediato.</p>
@@ -184,8 +187,29 @@
         <div><label for="scheduleEntryStart">Hora de inicio</label><input id="scheduleEntryStart" type="time" min="07:00" max="20:30" step="1800" required /></div>
         <div><label for="scheduleEntryEnd">Hora de finalización</label><input id="scheduleEntryEnd" type="time" min="07:30" max="21:00" step="1800" required /></div>
       </div>
-      <label for="scheduleEntryLabel">Curso, profesor o detalle</label>
-      <input id="scheduleEntryLabel" type="text" maxlength="160" required />
+      <div class="schedule-details-grid">
+        <div class="schedule-field-wide">
+          <label for="scheduleEntryCourseName">Nombre del curso o actividad</label>
+          <input id="scheduleEntryCourseName" type="text" maxlength="160" placeholder="Ej.: Geología Ambiental y Suelos" />
+        </div>
+        <div>
+          <label for="scheduleEntryCourseCode">Código</label>
+          <input id="scheduleEntryCourseCode" type="text" maxlength="40" placeholder="Ej.: AME408" />
+        </div>
+        <div>
+          <label for="scheduleEntryGroup">Grupo</label>
+          <input id="scheduleEntryGroup" type="text" maxlength="40" placeholder="Ej.: 01" />
+        </div>
+        <div>
+          <label for="scheduleEntryNrc">NRC</label>
+          <input id="scheduleEntryNrc" type="text" maxlength="40" inputmode="numeric" placeholder="Ej.: 51769" />
+        </div>
+        <div class="schedule-field-wide">
+          <label for="scheduleEntryProfessor">Profesor o responsable</label>
+          <input id="scheduleEntryProfessor" type="text" maxlength="120" placeholder="Nombre completo" />
+        </div>
+      </div>
+      <p class="schedule-dialog-help">Completa los datos disponibles. Para actividades institucionales basta indicar el nombre de la actividad o responsable.</p>
       <div class="dialog-actions">
         <button class="secondary-button" id="cancelScheduleDialog" type="button">Cancelar</button>
         <button class="primary-button compact-button" id="saveScheduleEntryButton" type="submit">Guardar ocupación</button>
@@ -196,6 +220,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
-  <script src="reservas.js?v=8"></script>
+  <script src="password-toggle.js?v=1"></script>
+  <script src="reservas.js?v=10"></script>
 </body>
 </html>

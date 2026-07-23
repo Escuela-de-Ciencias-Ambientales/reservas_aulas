@@ -20,7 +20,8 @@
     saveBookingButton: byId('saveBookingButton'), refreshButton: byId('refreshButton'), myBookingsList: byId('myBookingsList'),
     boardDate: byId('boardDate'), boardRoom: byId('boardRoom'), availabilityBoard: byId('availabilityBoard'),
     publicReservationsList: byId('publicReservationsList'), reservationBoard: byId('reservationBoard'),
-    adminPanel: byId('adminPanel'), createUserForm: byId('createUserForm'), adminBookingsList: byId('adminBookingsList'),
+    adminPanel: byId('adminPanel'), createUserForm: byId('createUserForm'), createUserMessage: byId('createUserMessage'),
+    adminBookingsList: byId('adminBookingsList'),
     cycleBanner: byId('cycleBanner'), cycleName: byId('cycleName'), cycleDates: byId('cycleDates'), cycleState: byId('cycleState'),
     cycleDescription: byId('cycleDescription'), adminCycleState: byId('adminCycleState'), cycleForm: byId('cycleForm'),
     adminCycleName: byId('adminCycleName'), adminReservationStart: byId('adminReservationStart'),
@@ -34,7 +35,10 @@
     adminAccessLabel: byId('adminAccessLabel'), editorRoom: byId('editorRoom'), weeklyEditor: byId('weeklyEditor'),
     scheduleDialog: byId('scheduleDialog'), scheduleEntryForm: byId('scheduleEntryForm'), scheduleDialogTitle: byId('scheduleDialogTitle'),
     scheduleEntryId: byId('scheduleEntryId'), scheduleEntryRoom: byId('scheduleEntryRoom'), scheduleEntryDay: byId('scheduleEntryDay'),
-    scheduleEntryStart: byId('scheduleEntryStart'), scheduleEntryEnd: byId('scheduleEntryEnd'), scheduleEntryLabel: byId('scheduleEntryLabel'),
+    scheduleEntryStart: byId('scheduleEntryStart'), scheduleEntryEnd: byId('scheduleEntryEnd'),
+    scheduleEntryProfessor: byId('scheduleEntryProfessor'), scheduleEntryCourseCode: byId('scheduleEntryCourseCode'),
+    scheduleEntryCourseName: byId('scheduleEntryCourseName'), scheduleEntryNrc: byId('scheduleEntryNrc'),
+    scheduleEntryGroup: byId('scheduleEntryGroup'),
     closeScheduleDialog: byId('closeScheduleDialog'), cancelScheduleDialog: byId('cancelScheduleDialog'),
     saveScheduleEntryButton: byId('saveScheduleEntryButton')
   };
@@ -58,6 +62,17 @@
     elements.systemMessage.hidden = false;
   }
   function clearMessage() { elements.systemMessage.hidden = true; elements.systemMessage.textContent = ''; elements.systemMessage.classList.remove('is-error'); }
+  function showCreateUserMessage(message, type = 'success') {
+    elements.createUserMessage.textContent = message;
+    elements.createUserMessage.classList.toggle('is-error', type === 'error');
+    elements.createUserMessage.hidden = false;
+    elements.createUserMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function clearCreateUserMessage() {
+    elements.createUserMessage.hidden = true;
+    elements.createUserMessage.textContent = '';
+    elements.createUserMessage.classList.remove('is-error');
+  }
   function setBusy(button, busy, busyText = 'Procesando…') {
     if (!button) return;
     if (busy) { button.dataset.label = button.textContent; button.textContent = busyText; button.disabled = true; }
@@ -288,7 +303,15 @@
         const dayRecords = state.fixedOccupancies.filter((item) => item.classrooms?.code === room && item.day_of_week === day.id);
         const records = dayRecords.filter((item) => shiftForTime(item.start_time) === shift.id);
         const gapButtons = freeScheduleGaps(dayRecords, shift.start, shift.end).map((gap) => `<button class="add-occupancy" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${minutesToTime(gap.start)}" data-end="${minutesToTime(gap.end)}">Reservar ${minutesToTime(gap.start)}–${minutesToTime(gap.end)}</button>`).join('');
-        return `<div class="weekly-editor-cell">${records.map((item) => `<article class="occupancy-card"><strong>${escapeHtml(item.label)}</strong><span>${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span><div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div></article>`).join('')}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
+        return `<div class="weekly-editor-cell">${records.map((item) => {
+          const heading = item.course_code || item.course_name || item.professor_name || item.label;
+          const details = [
+            item.course_name && item.course_name !== heading ? `<span class="occupancy-course">${escapeHtml(item.course_name)}</span>` : '',
+            item.professor_name && item.professor_name !== heading ? `<span class="occupancy-professor">${escapeHtml(item.professor_name)}</span>` : '',
+            item.group_code || item.nrc ? `<span class="occupancy-meta">${item.group_code ? `Grupo ${escapeHtml(item.group_code)}` : ''}${item.group_code && item.nrc ? ' · ' : ''}${item.nrc ? `NRC ${escapeHtml(item.nrc)}` : ''}</span>` : ''
+          ].join('');
+          return `<article class="occupancy-card"><strong>${escapeHtml(heading)}</strong>${details}<span class="occupancy-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span><div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div></article>`;
+        }).join('')}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
       }).join('');
       return `<div class="weekly-editor-cell weekly-editor-header weekly-editor-shift"><strong>${shift.label}</strong><span>${shift.detail}</span></div>${cells}`;
     }).join('');
@@ -301,10 +324,14 @@
     elements.scheduleEntryDay.value = String(record?.day_of_week || defaults.day || 1);
     elements.scheduleEntryStart.value = normalizeTime(record?.start_time || defaults.start || '08:00');
     elements.scheduleEntryEnd.value = normalizeTime(record?.end_time || defaults.end || '09:00');
-    elements.scheduleEntryLabel.value = record?.label || '';
+    elements.scheduleEntryProfessor.value = record?.professor_name || '';
+    elements.scheduleEntryCourseCode.value = record?.course_code || '';
+    elements.scheduleEntryCourseName.value = record?.course_name || '';
+    elements.scheduleEntryNrc.value = record?.nrc || '';
+    elements.scheduleEntryGroup.value = record?.group_code || '';
     elements.scheduleDialogTitle.textContent = record ? 'Editar ocupación' : 'Reservar espacio';
     elements.scheduleDialog.showModal();
-    window.setTimeout(() => elements.scheduleEntryLabel.focus(), 80);
+    window.setTimeout(() => elements.scheduleEntryCourseName.focus(), 80);
   }
   function closeScheduleEditor() { elements.scheduleDialog.close(); }
   async function saveScheduleEntry(event) {
@@ -318,7 +345,11 @@
         p_day: Number(elements.scheduleEntryDay.value),
         p_start: elements.scheduleEntryStart.value,
         p_end: elements.scheduleEntryEnd.value,
-        p_label: elements.scheduleEntryLabel.value.trim()
+        p_professor_name: elements.scheduleEntryProfessor.value.trim(),
+        p_course_code: elements.scheduleEntryCourseCode.value.trim(),
+        p_course_name: elements.scheduleEntryCourseName.value.trim(),
+        p_nrc: elements.scheduleEntryNrc.value.trim(),
+        p_group_code: elements.scheduleEntryGroup.value.trim()
       });
       if (error) throw error;
       closeScheduleEditor();
@@ -348,7 +379,7 @@
   }
   async function loadFixedOccupancies() {
     if (!state.cycle) { state.fixedOccupancies = []; return; }
-    const { data, error } = await state.client.from('fixed_occupancies').select('id,day_of_week,start_time,end_time,label,classrooms(code)').eq('cycle_id', state.cycle.id).order('day_of_week').order('start_time');
+    const { data, error } = await state.client.from('fixed_occupancies').select('id,day_of_week,start_time,end_time,label,professor_name,course_code,course_name,nrc,group_code,classrooms(code)').eq('cycle_id', state.cycle.id).order('day_of_week').order('start_time');
     if (error) throw error; state.fixedOccupancies = data || []; renderWeeklyEditor();
   }
   async function loadTeachers() {
@@ -414,12 +445,25 @@
     finally { setBusy(button, false); }
   }
   async function createUser(event) {
-    event.preventDefault(); clearMessage(); const button = elements.createUserForm.querySelector('button[type="submit"]'); setBusy(button, true, 'Creando…');
-    const form = new FormData(elements.createUserForm), email = String(form.get('email')).trim().toLowerCase(), password = String(form.get('password'));
-    if (!teacherEmailPattern.test(email)) { showMessage('El correo debe tener el formato nombre.apellido.apellido@una.cr.', 'error'); setBusy(button, false); return; }
-    if (!strongPasswordPattern.test(password)) { showMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'error'); setBusy(button, false); return; }
-    try { const { data, error } = await state.client.functions.invoke('admin-create-user', { body: { fullName: String(form.get('name')).trim(), email, password, role: String(form.get('role')) } }); if (error) throw error; if (!data?.ok) throw new Error(data?.error || 'No fue posible crear la cuenta.'); elements.createUserForm.reset(); showMessage('Cuenta creada correctamente.'); }
-    catch (error) { showMessage(error.message, 'error'); } finally { setBusy(button, false); }
+    event.preventDefault(); clearMessage(); clearCreateUserMessage();
+    const button = elements.createUserForm.querySelector('button[type="submit"]');
+    const form = new FormData(elements.createUserForm);
+    const fullName = String(form.get('name')).trim();
+    const email = String(form.get('email')).trim().toLowerCase();
+    const password = String(form.get('password'));
+    if (fullName.length < 3) return showCreateUserMessage('Ingresa el nombre completo del usuario.', 'error');
+    if (!teacherEmailPattern.test(email)) return showCreateUserMessage('El correo debe tener el formato nombre.apellido.apellido@una.cr.', 'error');
+    if (!strongPasswordPattern.test(password)) return showCreateUserMessage('La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.', 'error');
+    setBusy(button, true, 'Creando…');
+    try {
+      const { data, error } = await state.client.functions.invoke('admin-create-user', { body: { fullName, email, password, role: String(form.get('role')) } });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'No fue posible crear la cuenta.');
+      elements.createUserForm.reset();
+      await loadTeachers();
+      showCreateUserMessage('Usuario creado exitosamente');
+    } catch (error) { showCreateUserMessage(error.message, 'error'); }
+    finally { setBusy(button, false); }
   }
 
   async function workbookRows(file) {
@@ -479,15 +523,25 @@
     const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((line) => line.trim());
     if (lines.length < 2) throw new Error('El archivo no contiene registros.');
     const separator = lines[0].includes(';') ? ';' : ',';
-    const headers = lines[0].split(separator).map((item) => item.trim().toLowerCase());
-    const required = ['aula', 'dia', 'hora_inicio', 'hora_fin', 'detalle'];
+    const headers = lines[0].split(separator).map(normalizeHeader);
+    const required = ['aula', 'dia', 'hora_inicio', 'hora_fin'];
     if (required.some((name) => !headers.includes(name))) throw new Error(`La plantilla debe incluir: ${required.join(', ')}.`);
     return lines.slice(1).map((line, index) => {
       const values = line.split(separator).map((item) => item.trim()); const row = Object.fromEntries(headers.map((key, i) => [key, values[i] || '']));
       const dayKey = row.dia.toUpperCase(); const day = /^\d$/.test(dayKey) ? Number(dayKey) : dayMap[dayKey];
-      if (!roomCodes.includes(row.aula) || !Number.isInteger(day) || day < 1 || day > 6 || !/^\d{2}:\d{2}$/.test(row.hora_inicio) || !/^\d{2}:\d{2}$/.test(row.hora_fin) || !row.detalle) throw new Error(`Revisa la fila ${index + 2} del archivo.`);
-      return { aula: row.aula, dia: day, hora_inicio: row.hora_inicio, hora_fin: row.hora_fin, detalle: row.detalle };
+      const entry = scheduleRow(row);
+      if (!roomCodes.includes(row.aula) || !Number.isInteger(day) || day < 1 || day > 6 || !/^\d{2}:\d{2}$/.test(row.hora_inicio) || !/^\d{2}:\d{2}$/.test(row.hora_fin) || !entry.detalle) throw new Error(`Revisa la fila ${index + 2} del archivo.`);
+      return { ...entry, aula: row.aula, dia: day, hora_inicio: row.hora_inicio, hora_fin: row.hora_fin };
     });
+  }
+  function scheduleRow(row) {
+    const profesor = row.profesor || row.profesor_o_responsable || '';
+    const codigo = row.codigo || row.codigo_del_curso || '';
+    const curso = row.curso || row.nombre_del_curso || row.nombre_del_curso_o_actividad || '';
+    const nrc = row.nrc || '';
+    const grupo = row.grupo || '';
+    const detalle = row.detalle || [codigo, profesor].filter(Boolean).join(' · ') || curso || profesor;
+    return { detalle, profesor, codigo, curso, nrc, grupo };
   }
   async function parseScheduleFile(file) {
     if (/\.csv$/i.test(file.name)) return parseCsv(await file.text());
@@ -500,11 +554,11 @@
       const day = /^\d$/.test(dayKey) ? Number(dayKey) : dayMap[dayKey];
       const start = normalizeClock(row.hora_inicio);
       const end = normalizeClock(row.hora_fin);
-      const detail = row.detalle || '';
-      if (!roomCodes.includes(room) || !Number.isInteger(day) || day < 1 || day > 6 || !start || !end || start >= end || !detail) {
+      const entry = scheduleRow(row);
+      if (!roomCodes.includes(room) || !Number.isInteger(day) || day < 1 || day > 6 || !start || !end || start >= end || !entry.detalle) {
         throw new Error(`Revisa la fila ${index + 2} del archivo de ocupación.`);
       }
-      return { aula: room, dia: day, hora_inicio: start, hora_fin: end, detalle: detail };
+      return { ...entry, aula: room, dia: day, hora_inicio: start, hora_fin: end };
     });
   }
   async function uploadSchedule() {

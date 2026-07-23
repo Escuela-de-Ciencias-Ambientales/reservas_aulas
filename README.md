@@ -11,6 +11,7 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Vista diaria de tramos disponibles y ocupados para cada aula dentro del área privada.
 - Inicio de sesión individual con correo y contraseña.
 - Registro inicial únicamente para docentes autorizados previamente por la administración.
+- Campos de contraseña con control para mostrar u ocultar el texto.
 - Cambio de contraseña personal con validación de seguridad.
 - Creación de reservas por fecha, aula, hora de inicio, hora de finalización y actividad.
 - Reserva directa desde cualquier tramo disponible, con horario máximo hasta las 21:00.
@@ -20,7 +21,7 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Dos niveles administrativos: superadministrador y administrador de reservas.
 - El superadministrador controla ciclos, roles administrativos y cargas masivas de docentes.
 - El administrador de reservas puede crear docentes, gestionar reservas y editar la ocupación académica únicamente desde el calendario semanal.
-- Editor semanal visual para crear, modificar o eliminar cursos directamente en cada bloque del aula.
+- Editor semanal visual para crear, modificar o eliminar cursos directamente en cada bloque del aula, incluyendo profesor, código, nombre del curso, grupo y NRC.
 - Creación individual de cuentas y carga masiva de docentes autorizados mediante Excel.
 - Diseño adaptable para computadora, tableta y teléfono.
 - Registro de cancelaciones y reglas de seguridad en la base de datos.

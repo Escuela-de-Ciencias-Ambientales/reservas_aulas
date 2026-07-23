@@ -31,3 +31,10 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .message.is-success { color:#075c40; background:#eff9f4; }
 @media (max-width:760px) { body { background:#f8faf9; } .access-header { padding:16px 0; } .brand { font-size:17px; } .brand img { width:62px;height:62px; } .una-logo { width:70px;height:60px; } .access-main { grid-template-columns:1fr; gap:30px; padding:24px 0 52px; } .access-copy h1 { font-size:46px; } .access-copy > p:not(.eyebrow) { font-size:16px; } .login-panel { padding:24px; } }
 @media (max-width:430px) { .brand span { max-width:155px; line-height:1.1; } .access-copy h1 { font-size:39px; } }
+.password-input { position:relative; width:100%; }
+.password-input input { padding-right:52px; }
+.password-toggle { position:absolute; z-index:2; top:50%; right:8px; width:38px !important; min-height:38px !important; margin:0 !important; padding:0 !important; transform:translateY(-50%); border:0; border-radius:9px; color:#4f635d; background:transparent !important; box-shadow:none !important; cursor:pointer; }
+.password-toggle:hover,.password-toggle:focus-visible { color:#087a55; background:#e8f5ef !important; outline:2px solid rgba(8,122,85,.18); }
+.password-eye { position:absolute; top:50%; left:50%; width:20px; height:13px; transform:translate(-50%,-50%) rotate(-2deg); border:2px solid currentColor; border-radius:70% 20% 70% 20%; }
+.password-eye::after { position:absolute; top:50%; left:50%; width:5px; height:5px; content:""; transform:translate(-50%,-50%); border-radius:50%; background:currentColor; }
+.password-toggle[aria-pressed="true"] .password-eye::before { position:absolute; z-index:1; top:50%; left:-3px; width:24px; height:2px; content:""; transform:rotate(-38deg); background:currentColor; box-shadow:0 0 0 2px #fff; }
