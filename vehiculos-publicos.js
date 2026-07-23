@@ -32,6 +32,10 @@
     $('vehiclePublicView').hidden = !vehicles;
     $('showPublicClassrooms').setAttribute('aria-selected', String(!vehicles));
     $('showPublicVehicles').setAttribute('aria-selected', String(vehicles));
+    const url = new URL(window.location.href);
+    if (vehicles) url.searchParams.set('vista', 'vehiculos');
+    else url.searchParams.delete('vista');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     if (vehicles && !state.vehicles.length) load();
   }
 
@@ -163,4 +167,5 @@
   $('publicVehicleNextMonth')?.addEventListener('click', async () => {
     state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1); await loadCalendar();
   });
+  setModule(new URLSearchParams(window.location.search).get('vista') === 'vehiculos' ? 'vehicles' : 'classrooms');
 })();

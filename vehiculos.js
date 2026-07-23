@@ -44,6 +44,7 @@
     $('vehiclePrivateModule').hidden = !vehicles;
     $('showPrivateClassrooms').setAttribute('aria-selected', String(!vehicles));
     $('showPrivateVehicles').setAttribute('aria-selected', String(vehicles));
+    $('publicOccupationLink').href = vehicles ? 'index.html?vista=vehiculos' : 'index.html';
     if (vehicles && !state.loaded) loadVehicleModule();
   }
 
