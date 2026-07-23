@@ -23,8 +23,8 @@
     bookingDate: byId('bookingDate'), bookingRoom: byId('bookingRoom'), bookingStart: byId('bookingStart'),
     bookingEnd: byId('bookingEnd'), bookingActivity: byId('bookingActivity'), availabilityCheck: byId('availabilityCheck'),
     saveBookingButton: byId('saveBookingButton'), refreshButton: byId('refreshButton'), myBookingsList: byId('myBookingsList'),
-    boardDate: byId('boardDate'), boardRoom: byId('boardRoom'), availabilityBoard: byId('availabilityBoard'),
-    publicReservationsList: byId('publicReservationsList'), reservationBoard: byId('reservationBoard'),
+    scheduleBrowser: byId('scheduleBrowser'), scheduleEditorTitle: byId('scheduleEditorTitle'),
+    scheduleEditorDescription: byId('scheduleEditorDescription'), editorWeek: byId('editorWeek'),
     adminPanel: byId('adminPanel'), createUserForm: byId('createUserForm'), createUserMessage: byId('createUserMessage'),
     adminBookingsList: byId('adminBookingsList'),
     cycleBanner: byId('cycleBanner'), cycleName: byId('cycleName'), cycleDates: byId('cycleDates'), cycleState: byId('cycleState'),
@@ -140,9 +140,9 @@
       : 'La consulta continúa disponible. Solo la administración puede habilitar nuevas reservas.';
     setCycleStateBadge(elements.cycleState, open ? 'Reservas abiertas' : waiting ? 'Fuera de horario' : 'Reservas cerradas', open ? 'is-open' : waiting ? 'is-waiting' : 'is-closed');
 
-    [elements.bookingDate, elements.boardDate, elements.dialogBookingDate].forEach((input) => { input.min = cycle.reservation_start_date; input.max = cycle.reservation_end_date; });
+    [elements.bookingDate, elements.dialogBookingDate, elements.editorWeek].forEach((input) => { input.min = cycle.reservation_start_date; input.max = cycle.reservation_end_date; });
     if (!elements.bookingDate.value || elements.bookingDate.value < cycle.reservation_start_date || elements.bookingDate.value > cycle.reservation_end_date) elements.bookingDate.value = initialDate();
-    if (!elements.boardDate.value || elements.boardDate.value < cycle.reservation_start_date || elements.boardDate.value > cycle.reservation_end_date) elements.boardDate.value = initialDate();
+    if (!elements.editorWeek.value || elements.editorWeek.value < cycle.reservation_start_date || elements.editorWeek.value > cycle.reservation_end_date) elements.editorWeek.value = initialDate();
 
     if (isAdmin()) {
       elements.adminCycleName.value = cycle.name;
@@ -213,7 +213,6 @@
   function populateRoomSelects() {
     elements.bookingRoom.innerHTML = roomOptions();
     elements.dialogBookingRoom.innerHTML = roomOptions();
-    elements.boardRoom.innerHTML = roomOptions(true);
     elements.editorRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">${escapeHtml(roomDisplayName(room.code))}</option>`).join('');
     elements.scheduleEntryRoom.innerHTML = state.rooms.map((room) => `<option value="${escapeHtml(room.code)}">${escapeHtml(roomDisplayName(room.code))}</option>`).join('');
   }
@@ -226,37 +225,9 @@
   }
   function timeToMinutes(time) { const [hours, minutes] = normalizeTime(time).split(':').map(Number); return hours * 60 + minutes; }
   function minutesToTime(minutes) { return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`; }
-  function occupiedIntervals(roomCode, date) {
-    const selectedDay = new Date(`${date}T12:00:00`).getDay();
-    const fixed = state.cycle && date <= state.cycle.academic_schedule_end_date ? state.fixedOccupancies.filter((item) => item.classrooms?.code === roomCode && item.day_of_week === selectedDay).map((item) => ({ start: timeToMinutes(item.start_time), end: timeToMinutes(item.end_time), label: item.label })) : [];
-    const reserved = state.reservations.filter((item) => item.status === 'active' && item.reservation_date === date && item.classrooms?.code === roomCode).map((item) => ({ start: timeToMinutes(item.start_time), end: timeToMinutes(item.end_time), label: item.activity }));
-    return [...fixed, ...reserved].sort((a, b) => a.start - b.start || a.end - b.end);
-  }
-  function timelineForRoom(roomCode, date) {
-    const opening = 420, closing = 1260, merged = [];
-    occupiedIntervals(roomCode, date).forEach((slot) => {
-      const start = Math.max(opening, slot.start), end = Math.min(closing, slot.end);
-      if (end <= opening || start >= closing) return;
-      const previous = merged.at(-1);
-      if (previous && start <= previous.end) { previous.end = Math.max(previous.end, end); previous.labels.push(slot.label); }
-      else merged.push({ start, end, labels: [slot.label] });
-    });
-    const timeline = []; let cursor = opening;
-    merged.forEach((slot) => { if (cursor < slot.start) timeline.push({ start: cursor, end: slot.start, free: true, label: 'Disponible' }); timeline.push({ start: slot.start, end: slot.end, free: false, label: [...new Set(slot.labels)].join(' · ') }); cursor = Math.max(cursor, slot.end); });
-    if (cursor < closing) timeline.push({ start: cursor, end: closing, free: true, label: 'Disponible' });
-    return timeline;
-  }
-  function renderAvailability() {
-    if (!elements.boardDate.value) return;
-    const selectedRoom = elements.boardRoom.value;
-    const rooms = selectedRoom === 'TODAS' ? state.rooms : state.rooms.filter((room) => room.code === selectedRoom);
-    elements.availabilityBoard.innerHTML = rooms.map((room) => `<article class="availability-room"><h3>${escapeHtml(roomDisplayName(room.code))}</h3><div class="availability-slots">${timelineForRoom(room.code, elements.boardDate.value).map((slot) => slot.free
-      ? `<button class="availability-slot is-free" type="button" data-reserve-room="${escapeHtml(room.code)}" data-reserve-start="${minutesToTime(slot.start)}" data-reserve-end="${minutesToTime(slot.end)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Reservar</button>`
-      : `<span class="availability-slot is-busy" title="${escapeHtml(slot.label)}">${minutesToTime(slot.start)}–${minutesToTime(slot.end)} · Ocupado</span>`).join('')}</div></article>`).join('');
-  }
   function openBookingDialog(button) {
     elements.bookingDialogForm.reset();
-    elements.dialogBookingDate.value = elements.boardDate.value;
+    elements.dialogBookingDate.value = button.dataset.reserveDate || elements.bookingDate.value || initialDate();
     elements.dialogBookingRoom.value = button.dataset.reserveRoom;
     elements.dialogBookingStart.value = button.dataset.reserveStart;
     elements.dialogBookingEnd.value = button.dataset.reserveEnd;
@@ -266,12 +237,6 @@
     window.setTimeout(() => elements.dialogBookingActivity.focus(), 80);
   }
   function closeBookingDialog() { elements.bookingDialog.close(); }
-  function renderPublicReservations() {
-    const date = elements.boardDate.value, room = elements.boardRoom.value;
-    const list = state.reservations.filter((item) => item.status === 'active' && item.reservation_date === date && (room === 'TODAS' || item.classrooms?.code === room)).sort((a, b) => a.start_time.localeCompare(b.start_time));
-    elements.publicReservationsList.innerHTML = list.length ? list.map((item) => reservationCard(item)).join('') : '<p class="empty-state">No hay reservas registradas para esta fecha.</p>';
-    renderAvailability();
-  }
   function renderMyReservations() {
     if (!state.session) return;
     const list = state.reservations.filter((item) => item.status === 'active' && item.user_id === state.session.user.id && item.reservation_date >= localDateString()).sort((a, b) => a.reservation_date.localeCompare(b.reservation_date) || a.start_time.localeCompare(b.start_time));
@@ -285,13 +250,17 @@
   function renderSession() {
     const loggedIn = Boolean(state.session && state.profile);
     elements.headerAccount.hidden = !loggedIn;
-    elements.userView.hidden = !loggedIn; elements.reservationBoard.hidden = !loggedIn; elements.adminPanel.hidden = !loggedIn || !isAdmin();
+    elements.userView.hidden = !loggedIn; elements.scheduleBrowser.hidden = !loggedIn; elements.adminPanel.hidden = !loggedIn || !isAdmin();
     if (!loggedIn) return;
     elements.currentUserName.textContent = state.profile.full_name;
     elements.currentUserRole.textContent = isSuperadmin() ? 'Superadministrador' : isAdmin() ? 'Administrador de reservas' : 'Docente';
     elements.adminProfessorField.hidden = !isAdmin();
     elements.dialogAdminProfessorField.hidden = !isAdmin();
     elements.adminAccessLabel.textContent = isSuperadmin() ? 'Acceso de superadministrador' : 'Acceso de administración de reservas';
+    elements.scheduleEditorTitle.textContent = isAdmin() ? 'Horario, reservas y ocupación académica' : 'Disponibilidad semanal por aula';
+    elements.scheduleEditorDescription.textContent = isAdmin()
+      ? 'Selecciona una semana y un aula. Puedes reservar espacios libres y gestionar directamente la ocupación académica.'
+      : 'Selecciona una semana y un aula. Pulsa “Reservar” directamente en el espacio que necesitas.';
     document.querySelectorAll('.superadmin-only').forEach((element) => { element.hidden = !isSuperadmin(); });
     renderCycle(); renderMyReservations(); renderAdminReservations();
   }
@@ -304,12 +273,6 @@
     elements.scheduleProfessorOptions.innerHTML = state.teachers
       .map((teacher) => `<option value="${escapeHtml(teacher.full_name)}"></option>`)
       .join('');
-  }
-  function shiftForTime(time) {
-    const minutes = timeToMinutes(time);
-    if (minutes < 780) return 'morning';
-    if (minutes < 990) return 'afternoon';
-    return 'night';
   }
   function freeScheduleGaps(records, shiftStart, shiftEnd) {
     const start = timeToMinutes(shiftStart), end = timeToMinutes(shiftEnd);
@@ -325,7 +288,19 @@
     if (cursor < end) gaps.push({ start: cursor, end });
     return gaps;
   }
-  function bindWeeklyReserveButtons() {
+  function dateForWeekDay(referenceDate, dayId) {
+    const date = new Date(`${referenceDate}T12:00:00`);
+    const currentDay = date.getDay() || 7;
+    date.setDate(date.getDate() - currentDay + dayId);
+    return localDateString(date);
+  }
+  function bindWeeklyActions() {
+    elements.weeklyEditor.querySelectorAll('[data-reserve-room]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        openBookingDialog(button);
+      });
+    });
     elements.weeklyEditor.querySelectorAll('[data-add-occupancy]').forEach((button) => {
       button.addEventListener('click', (event) => {
         event.preventDefault();
@@ -339,34 +314,58 @@
     });
   }
   function renderWeeklyEditor() {
-    if (!isAdmin() || !elements.editorRoom.value) return;
+    if (!state.profile || !state.cycle || !elements.editorRoom.value || !elements.editorWeek.value) return;
     const room = elements.editorRoom.value;
-    const days = [{ id: 1, label: 'Lunes' }, { id: 2, label: 'Martes' }, { id: 3, label: 'Miércoles' }, { id: 4, label: 'Jueves' }, { id: 5, label: 'Viernes' }, { id: 6, label: 'Sábado' }];
+    const days = [{ id: 1, label: 'Lunes' }, { id: 2, label: 'Martes' }, { id: 3, label: 'Miércoles' }, { id: 4, label: 'Jueves' }, { id: 5, label: 'Viernes' }, { id: 6, label: 'Sábado' }]
+      .map((day) => ({ ...day, date: dateForWeekDay(elements.editorWeek.value, day.id) }));
     const shifts = [
       { id: 'morning', label: 'Mañana', detail: '07:00–13:00', start: '07:00', end: '13:00' },
       { id: 'afternoon', label: 'Tarde', detail: '13:00–16:30', start: '13:00', end: '16:30' },
       { id: 'night', label: 'Noche', detail: '16:30–21:00', start: '16:30', end: '21:00' }
     ];
-    const header = `<div class="weekly-editor-cell weekly-editor-header">Jornada</div>${days.map((day) => `<div class="weekly-editor-cell weekly-editor-header">${day.label}</div>`).join('')}`;
+    const header = `<div class="weekly-editor-cell weekly-editor-header">Jornada</div>${days.map((day) => `<div class="weekly-editor-cell weekly-editor-header"><strong>${day.label}</strong><span>${formatDate(day.date)}</span></div>`).join('')}`;
     const rows = shifts.map((shift) => {
       const cells = days.map((day) => {
-        const dayRecords = state.fixedOccupancies.filter((item) => item.classrooms?.code === room && item.day_of_week === day.id);
-        const records = dayRecords.filter((item) => shiftForTime(item.start_time) === shift.id);
-        const gapButtons = freeScheduleGaps(dayRecords, shift.start, shift.end).map((gap) => `<button class="add-occupancy" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${minutesToTime(gap.start)}" data-end="${minutesToTime(gap.end)}">Reservar ${minutesToTime(gap.start)}–${minutesToTime(gap.end)}</button>`).join('');
-        return `<div class="weekly-editor-cell">${records.map((item) => {
+        const inCycle = day.date >= state.cycle.reservation_start_date && day.date <= state.cycle.reservation_end_date;
+        if (!inCycle) return '<div class="weekly-editor-cell is-outside-cycle"><span class="no-gap">Fuera del periodo</span></div>';
+        const fixedForDay = day.date <= state.cycle.academic_schedule_end_date
+          ? state.fixedOccupancies.filter((item) => item.classrooms?.code === room && item.day_of_week === day.id)
+          : [];
+        const reservationsForDay = state.reservations.filter((item) => item.classrooms?.code === room && item.reservation_date === day.date && item.status === 'active');
+        const fixedRecords = fixedForDay.filter((item) => overlaps(item.start_time, item.end_time, shift.start, shift.end));
+        const reservationRecords = reservationsForDay.filter((item) => overlaps(item.start_time, item.end_time, shift.start, shift.end));
+        const isFutureDate = day.date >= localDateString();
+        const canReserve = cycleIsOpen() && isFutureDate;
+        const gapButtons = freeScheduleGaps([...fixedForDay, ...reservationsForDay], shift.start, shift.end).map((gap) => {
+          const start = minutesToTime(gap.start), end = minutesToTime(gap.end);
+          const reserveAction = isFutureDate
+            ? `<button class="add-occupancy" type="button" data-reserve-room="${escapeHtml(room)}" data-reserve-date="${day.date}" data-reserve-start="${start}" data-reserve-end="${end}"${canReserve ? '' : ' disabled title="Las reservas están cerradas"'}>Reservar ${start}–${end}</button>`
+            : `<span class="available-gap">${start}–${end} · Disponible</span>`;
+          const academicAction = isAdmin()
+            ? `<button class="academic-gap-action" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${start}" data-end="${end}">Crear ocupación académica</button>`
+            : '';
+          return `<div class="gap-actions">${reserveAction}${academicAction}</div>`;
+        }).join('');
+        const fixedCards = fixedRecords.map((item) => {
           const heading = item.course_code || item.course_name || item.professor_name || item.label;
           const details = [
             item.course_name && item.course_name !== heading ? `<span class="occupancy-course">${escapeHtml(item.course_name)}</span>` : '',
             item.professor_name && item.professor_name !== heading ? `<span class="occupancy-professor">${escapeHtml(item.professor_name)}</span>` : '',
             item.group_code || item.nrc ? `<span class="occupancy-meta">${item.group_code ? `Grupo ${escapeHtml(item.group_code)}` : ''}${item.group_code && item.nrc ? ' · ' : ''}${item.nrc ? `NRC ${escapeHtml(item.nrc)}` : ''}</span>` : ''
           ].join('');
-          return `<article class="occupancy-card"><strong>${escapeHtml(heading)}</strong>${details}<span class="occupancy-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span><div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div></article>`;
-        }).join('')}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
+          const controls = isAdmin() ? `<div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div>` : '';
+          return `<article class="occupancy-card"><strong>${escapeHtml(heading)}</strong>${details}<span class="occupancy-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span>${controls}</article>`;
+        }).join('');
+        const reservationCards = reservationRecords.map((item) => {
+          const canCancel = isAdmin() || item.user_id === state.session?.user?.id;
+          return `<article class="occupancy-card weekly-reservation-card"><span class="reservation-kind">Reserva</span><strong>${escapeHtml(item.activity)}</strong><span>${escapeHtml(item.professor_name)}</span><span class="occupancy-time">${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span>${canCancel ? `<div class="occupancy-actions"><button class="delete-occupancy" type="button" data-cancel-reservation="${escapeHtml(item.id)}">Cancelar</button></div>` : ''}</article>`;
+        }).join('');
+        return `<div class="weekly-editor-cell">${fixedCards}${reservationCards}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
       }).join('');
       return `<div class="weekly-editor-cell weekly-editor-header weekly-editor-shift"><strong>${shift.label}</strong><span>${shift.detail}</span></div>${cells}`;
     }).join('');
     elements.weeklyEditor.innerHTML = header + rows;
-    bindWeeklyReserveButtons();
+    bindWeeklyActions();
   }
   function openScheduleDialog(record = null, defaults = {}) {
     elements.scheduleEntryForm.reset();
@@ -406,7 +405,6 @@
       closeScheduleEditor();
       await loadFixedOccupancies();
       renderWeeklyEditor();
-      renderPublicReservations();
       showMessage(id ? 'Ocupación actualizada correctamente.' : 'Ocupación añadida correctamente.');
     } catch (error) { showMessage(error.message, 'error'); }
     finally { setBusy(elements.saveScheduleEntryButton, false); }
@@ -418,7 +416,6 @@
     if (error) return showMessage(error.message, 'error');
     await loadFixedOccupancies();
     renderWeeklyEditor();
-    renderPublicReservations();
     showMessage('Ocupación eliminada correctamente.');
   }
 
@@ -443,7 +440,7 @@
   async function loadReservations() {
     if (!state.cycle) { state.reservations = []; return; }
     const { data, error } = await state.client.from('reservations').select('id,user_id,classroom_id,reservation_date,start_time,end_time,activity,professor_name,status,created_at,classrooms(code,name)').eq('cycle_id', state.cycle.id).eq('status', 'active').order('reservation_date').order('start_time');
-    if (error) throw error; state.reservations = data || []; renderPublicReservations(); renderMyReservations(); renderAdminReservations(); updateAvailability();
+    if (error) throw error; state.reservations = data || []; renderWeeklyEditor(); renderMyReservations(); renderAdminReservations(); updateAvailability();
   }
   async function loadProfile() {
     if (!state.session) { state.profile = null; renderSession(); return; }
@@ -453,7 +450,7 @@
     state.profile = data; renderSession();
   }
   async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); }
-  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=4'); }
+  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=5'); }
 
   async function saveReservation(event) {
     event.preventDefault(); clearMessage();
@@ -690,6 +687,7 @@
     elements.logoutButton.addEventListener('click', signOut); elements.bookingForm.addEventListener('submit', saveReservation); elements.createUserForm.addEventListener('submit', createUser); elements.cycleForm.addEventListener('submit', configureCycle);
     elements.changePasswordForm.addEventListener('submit', changePassword); elements.uploadUsersButton.addEventListener('click', uploadUsers);
     elements.editorRoom.addEventListener('change', renderWeeklyEditor);
+    elements.editorWeek.addEventListener('change', renderWeeklyEditor);
     elements.bookingDialogForm.addEventListener('submit', saveDialogReservation);
     elements.closeBookingDialog.addEventListener('click', closeBookingDialog);
     elements.cancelBookingDialog.addEventListener('click', closeBookingDialog);
@@ -712,11 +710,6 @@
     elements.refreshButton.addEventListener('click', async () => { await reloadAll(); showMessage('Información actualizada.'); });
     [elements.bookingDate, elements.bookingRoom, elements.bookingStart, elements.bookingEnd].forEach((control) => { control.addEventListener('change', updateAvailability); control.addEventListener('input', updateAvailability); });
     [elements.dialogBookingDate, elements.dialogBookingRoom, elements.dialogBookingStart, elements.dialogBookingEnd].forEach((control) => { control.addEventListener('change', updateDialogAvailability); control.addEventListener('input', updateDialogAvailability); });
-    elements.boardDate.addEventListener('change', renderPublicReservations); elements.boardRoom.addEventListener('change', renderPublicReservations);
-    elements.availabilityBoard.addEventListener('click', (event) => {
-      const reserveButton = event.target.closest('[data-reserve-room]');
-      if (reserveButton) openBookingDialog(reserveButton);
-    });
     document.addEventListener('click', (event) => {
       const cancelButton = event.target.closest('[data-cancel-reservation]');
       if (cancelButton) cancelReservation(cancelButton.dataset.cancelReservation);
@@ -728,14 +721,14 @@
   }
 
   async function initialize() {
-    elements.bookingStart.value = '08:00'; elements.bookingEnd.value = '09:00'; elements.bookingDate.value = localDateString(); elements.boardDate.value = localDateString(); populateRoomSelects(); bindEvents();
+    elements.bookingStart.value = '08:00'; elements.bookingEnd.value = '09:00'; elements.bookingDate.value = localDateString(); elements.editorWeek.value = localDateString(); populateRoomSelects(); bindEvents();
     if (!isConfigured || !window.supabase?.createClient) { elements.connectionStatus.textContent = 'Configuración pendiente'; elements.connectionStatus.classList.add('is-offline'); showMessage('El sistema está instalado. Falta conectar el proyecto de Supabase.', 'error'); return; }
     try {
       state.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
       elements.connectionStatus.textContent = 'Sistema disponible'; const { data } = await state.client.auth.getSession(); state.session = data.session;
-      if (!state.session) { window.location.replace('ingreso.html?v=4'); return; }
+      if (!state.session) { window.location.replace('ingreso.html?v=5'); return; }
       await loadProfile(); await loadRooms(); await reloadAll();
-      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=4'); });
+      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=5'); });
     } catch (error) { elements.connectionStatus.textContent = 'Conexión no disponible'; elements.connectionStatus.classList.add('is-offline'); showMessage(`No fue posible conectar con el sistema: ${error.message}`, 'error'); }
   }
   initialize();

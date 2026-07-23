@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=13" />
+  <link rel="stylesheet" href="reservas.css?v=14" />
 </head>
 <body>
   <header class="private-header">
@@ -103,17 +103,19 @@
       </section>
     </section>
 
-    <section class="reservation-board panel" id="reservationBoard" aria-labelledby="boardTitle" hidden>
-      <div class="section-heading board-heading">
-        <div><p class="eyebrow">Consulta diaria</p><h2 id="boardTitle">Disponibilidad por aula</h2></div>
-        <div class="board-filters">
-          <label for="boardDate">Fecha</label><input id="boardDate" type="date" />
-          <label for="boardRoom">Aula</label><select id="boardRoom"><option value="TODAS">Todas</option></select>
+    <section class="schedule-browser panel" id="scheduleBrowser" aria-labelledby="scheduleEditorTitle" hidden>
+      <div class="section-heading compact-heading">
+        <div>
+          <p class="eyebrow">Horario y reservas</p>
+          <h2 id="scheduleEditorTitle">Disponibilidad semanal por aula</h2>
+          <p id="scheduleEditorDescription">Selecciona una semana y un aula. Pulsa “Reservar” directamente en el espacio que necesitas.</p>
+        </div>
+        <div class="editor-filters">
+          <div><label for="editorWeek">Semana</label><input id="editorWeek" type="date" /></div>
+          <div><label for="editorRoom">Aula</label><select id="editorRoom"></select></div>
         </div>
       </div>
-      <div class="availability-board" id="availabilityBoard" aria-live="polite"></div>
-      <h3 class="reservation-detail-title">Detalle de reservas registradas</h3>
-      <div class="reservation-list public-list" id="publicReservationsList"><p class="empty-state">No hay reservas registradas para esta fecha.</p></div>
+      <div class="weekly-editor" id="weeklyEditor" aria-live="polite"></div>
     </section>
 
     <section class="admin-panel panel" id="adminPanel" aria-labelledby="adminTitle" hidden>
@@ -145,16 +147,6 @@
           <p id="cycleActionHelp">Las reservas permanecerán cerradas hasta completar la configuración.</p>
           <button class="primary-button compact-button" id="toggleReservationsButton" type="button" disabled>Abrir reservas</button>
         </div>
-      </section>
-      <section class="schedule-editor" aria-labelledby="scheduleEditorTitle">
-        <div class="section-heading compact-heading">
-          <div>
-            <h3 id="scheduleEditorTitle">Editar ocupación semanal</h3>
-            <p>Selecciona un aula. Puedes editar o eliminar un curso existente y añadir otro directamente en un espacio libre.</p>
-          </div>
-          <div class="editor-room-filter"><label for="editorRoom">Aula</label><select id="editorRoom"></select></div>
-        </div>
-        <div class="weekly-editor" id="weeklyEditor" aria-live="polite"></div>
       </section>
       <div class="account-management-grid">
         <div class="account-form-column">
@@ -261,6 +253,6 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=15"></script>
+  <script src="reservas.js?v=16"></script>
 </body>
 </html>

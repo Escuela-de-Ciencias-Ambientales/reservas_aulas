@@ -68,7 +68,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 }
 
 .reservation-portal,
-.reservation-board,
+.schedule-browser,
 .admin-panel {
   margin: 0 0 22px;
   padding: 26px;
@@ -123,7 +123,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 }
 
 .portal-heading h2,
-.reservation-board h2,
+.schedule-browser h2,
 .admin-panel h2,
 .schedule-heading h2 {
   margin: 0;
@@ -250,7 +250,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 
 .booking-form label,
 .reservation-portal label,
-.reservation-board label,
+.schedule-browser label,
 .admin-panel label,
 .password-panel label {
   display: block;
@@ -266,8 +266,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .booking-form select,
 .reservation-portal input,
 .reservation-portal select,
-.reservation-board input,
-.reservation-board select,
+.schedule-browser input,
+.schedule-browser select,
 .admin-panel input,
 .admin-panel select,
 .password-panel input {
@@ -285,8 +285,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .booking-form select:focus,
 .reservation-portal input:focus,
 .reservation-portal select:focus,
-.reservation-board input:focus,
-.reservation-board select:focus,
+.schedule-browser input:focus,
+.schedule-browser select:focus,
 .admin-panel input:focus,
 .admin-panel select:focus,
 .password-panel input:focus {
@@ -368,13 +368,17 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .full-button { width:100%; }
 .admin-bookings { margin-top:20px; }
 
-.schedule-editor { margin:22px 0; padding:22px; border:1px solid var(--reserve-line); border-radius:16px; background:#fff; }
-.editor-room-filter { min-width:170px; }
-.editor-room-filter label { margin-top:0; }
+.schedule-browser { padding:26px; }
+.schedule-browser .compact-heading > div:first-child { max-width:650px; }
+.schedule-browser .compact-heading p:not(.eyebrow) { margin:8px 0 0; color:var(--reserve-muted); line-height:1.45; }
+.editor-filters { display:grid; grid-template-columns:minmax(160px,1fr) minmax(190px,1.15fr); gap:12px; min-width:380px; }
+.editor-filters label { margin-top:0; }
 .weekly-editor { display:grid; grid-template-columns:92px repeat(6,minmax(0,1fr)); width:100%; margin-top:18px; overflow:visible; border:1px solid var(--reserve-line); border-radius:14px; }
 .weekly-editor-cell { min-width:0; min-height:132px; padding:9px; border-right:1px solid var(--reserve-line); border-bottom:1px solid var(--reserve-line); background:#fbfcfc; }
 .weekly-editor-cell:nth-child(7n) { border-right:0; }
 .weekly-editor-header { min-height:auto; padding:11px 10px; color:var(--reserve-ink); background:#f1f5f3; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
+.weekly-editor-header strong,.weekly-editor-header span { display:block; }
+.weekly-editor-header span { margin-top:3px; color:var(--reserve-muted); font-size:10px; font-weight:700; letter-spacing:0; text-transform:none; }
 .weekly-editor-shift { min-width:0; padding:10px 8px; color:var(--reserve-ink); background:#f7f9f8; }
 .weekly-editor-shift strong,.weekly-editor-shift span { display:block; }
 .weekly-editor-shift span { margin-top:5px; color:var(--reserve-muted); font-size:12px; font-weight:600; text-transform:none; }
@@ -392,6 +396,15 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .delete-occupancy { color:#9a1f29; background:#fff0f1; }
 .add-occupancy { width:100%; min-height:38px; margin-top:6px; border:1px dashed #bfd0ca; border-radius:9px; color:var(--reserve-green); background:transparent; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 .add-occupancy:hover,.add-occupancy:focus-visible { color:#fff; border-color:var(--reserve-green); background:var(--reserve-green); }
+.add-occupancy:disabled { color:#8a9591; border-color:#d7dfdc; background:#f2f5f4; cursor:not-allowed; }
+.gap-actions { display:grid; gap:5px; margin-top:6px; }
+.gap-actions .add-occupancy { margin-top:0; }
+.academic-gap-action { width:100%; padding:5px 6px; border:0; border-radius:7px; color:#4f5d59; background:#edf2f0; font:inherit; font-size:10px; font-weight:800; cursor:pointer; }
+.academic-gap-action:hover,.academic-gap-action:focus-visible { color:#fff; background:#4f5d59; }
+.available-gap { display:block; padding:9px 6px; border:1px dashed #d5dfdb; border-radius:9px; color:var(--reserve-muted); font-size:11px; font-weight:700; text-align:center; }
+.weekly-reservation-card { border-color:#efc2c6; border-left-color:var(--reserve-red); background:#fffafb; }
+.weekly-reservation-card .reservation-kind { margin:0 0 4px; color:var(--reserve-red); font-size:9px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+.is-outside-cycle { background:#f4f6f5; }
 .no-gap { display:block; padding:10px 4px; color:var(--reserve-muted); font-size:12px; text-align:center; }
 
 .schedule-dialog { width:min(760px,calc(100% - 28px)); padding:0; border:0; border-radius:18px; color:var(--reserve-ink); box-shadow:0 28px 80px rgba(20,45,38,.24); }
@@ -584,7 +597,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .cycle-form .primary-button,.compact-button,.secondary-button { width:100%; }
   .upload-actions { width:100%; }
   .reservation-portal,
-  .reservation-board,
+  .schedule-browser,
   .admin-panel { padding: 18px; border-radius: 16px; }
   .portal-heading,
   .section-heading,
@@ -595,7 +608,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .booking-form { padding:20px; }
   .password-form { grid-template-columns:1fr; }
   .password-form .primary-button { width:100%; }
-  .schedule-editor { padding:16px; }
+  .schedule-browser { padding:16px; }
+  .editor-filters { grid-template-columns:1fr 1fr; width:100%; min-width:0; }
   .dialog-actions { align-items:stretch; flex-direction:column-reverse; }
   .dialog-actions .primary-button,.dialog-actions .secondary-button { width:100%; }
   .account-actions { width: 100%; justify-content: space-between; }
