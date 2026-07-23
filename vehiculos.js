@@ -17,7 +17,12 @@
   const localDateTime = (date) => `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   const formatDateTime = (value) => new Intl.DateTimeFormat('es-CR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
-  const vehicleImage = (value = '') => String(value).replace(/\.(webp|jpe?g)$/i, '.png');
+  const vehicleImage = (value = '') => {
+    const path = String(value);
+    if (/mitsubishi/i.test(path) && window.VEHICLE_IMAGES?.mitsubishi) return window.VEHICLE_IMAGES.mitsubishi;
+    if (/toyota/i.test(path) && window.VEHICLE_IMAGES?.toyota) return window.VEHICLE_IMAGES.toyota;
+    return path.replace(/\.(webp|jpe?g)$/i, '.png');
+  };
 
   function setMessage(element, text, success = false) {
     if (!element) return;
