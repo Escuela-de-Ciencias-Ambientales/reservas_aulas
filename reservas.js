@@ -45,7 +45,7 @@
     scheduleEntryStart: byId('scheduleEntryStart'), scheduleEntryEnd: byId('scheduleEntryEnd'),
     scheduleEntryProfessor: byId('scheduleEntryProfessor'), scheduleEntryCourseCode: byId('scheduleEntryCourseCode'),
     scheduleEntryCourseName: byId('scheduleEntryCourseName'), scheduleEntryNrc: byId('scheduleEntryNrc'),
-    scheduleEntryGroup: byId('scheduleEntryGroup'),
+    scheduleEntryGroup: byId('scheduleEntryGroup'), scheduleProfessorOptions: byId('scheduleProfessorOptions'),
     closeScheduleDialog: byId('closeScheduleDialog'), cancelScheduleDialog: byId('cancelScheduleDialog'),
     saveScheduleEntryButton: byId('saveScheduleEntryButton')
   };
@@ -294,6 +294,9 @@
       : '<option value="">No hay docentes activos</option>';
     elements.bookingProfessor.innerHTML = options;
     elements.dialogBookingProfessor.innerHTML = options;
+    elements.scheduleProfessorOptions.innerHTML = state.teachers
+      .map((teacher) => `<option value="${escapeHtml(teacher.full_name)}"></option>`)
+      .join('');
   }
   function shiftForTime(time) {
     const minutes = timeToMinutes(time);

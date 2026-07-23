@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=12" />
+  <link rel="stylesheet" href="reservas.css?v=13" />
 </head>
 <body>
   <header class="private-header">
@@ -232,23 +232,24 @@
           <input id="scheduleEntryCourseName" type="text" maxlength="160" placeholder="Ej.: Geología Ambiental y Suelos" />
         </div>
         <div>
-          <label for="scheduleEntryCourseCode">Código</label>
+          <label for="scheduleEntryCourseCode">Código <span class="optional-label">(opcional)</span></label>
           <input id="scheduleEntryCourseCode" type="text" maxlength="40" placeholder="Ej.: AME408" />
         </div>
         <div>
-          <label for="scheduleEntryGroup">Grupo</label>
+          <label for="scheduleEntryGroup">Grupo <span class="optional-label">(opcional)</span></label>
           <input id="scheduleEntryGroup" type="text" maxlength="40" placeholder="Ej.: 01" />
         </div>
         <div>
-          <label for="scheduleEntryNrc">NRC</label>
+          <label for="scheduleEntryNrc">NRC <span class="optional-label">(opcional)</span></label>
           <input id="scheduleEntryNrc" type="text" maxlength="40" inputmode="numeric" placeholder="Ej.: 51769" />
         </div>
         <div class="schedule-field-wide">
           <label for="scheduleEntryProfessor">Profesor o responsable</label>
-          <input id="scheduleEntryProfessor" type="text" maxlength="120" placeholder="Nombre completo" />
+          <input id="scheduleEntryProfessor" type="text" maxlength="120" list="scheduleProfessorOptions" autocomplete="off" placeholder="Escribe para buscar o selecciona un docente" />
+          <datalist id="scheduleProfessorOptions"></datalist>
         </div>
       </div>
-      <p class="schedule-dialog-help">Completa los datos disponibles. Para actividades institucionales basta indicar el nombre de la actividad o responsable.</p>
+      <p class="schedule-dialog-help">Código, grupo y NRC son opcionales. Para actividades institucionales basta indicar el nombre de la actividad o responsable.</p>
       <div class="dialog-actions">
         <button class="secondary-button" id="cancelScheduleDialog" type="button">Cancelar</button>
         <button class="primary-button compact-button" id="saveScheduleEntryButton" type="submit">Guardar ocupación</button>
@@ -260,6 +261,6 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=12"></script>
+  <script src="reservas.js?v=13"></script>
 </body>
 </html>
