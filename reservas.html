@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reservación de aulas | EDECA</title>
-  <meta name="description" content="Área privada para la reservación de aulas por parte del personal docente de EDECA." />
+  <title>Reservación de aulas y vehículos | EDECA</title>
+  <meta name="description" content="Área privada para la reservación de aulas y vehículos institucionales de EDECA." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=17" />
+  <link rel="stylesheet" href="reservas.css?v=18" />
+  <link rel="stylesheet" href="vehiculos.css?v=1" />
 </head>
 <body>
   <header class="private-header">
@@ -35,14 +36,20 @@
     <section class="private-intro">
       <div>
         <p class="eyebrow">Área docente</p>
-        <h1>Reservación de aulas</h1>
-        <p id="cycleDescription">Consulta la disponibilidad de las aulas y confirma tu reserva cuando el periodo esté habilitado.</p>
+        <h1>Reservación de aulas y vehículos</h1>
+        <p id="cycleDescription">Consulta la disponibilidad y confirma tu reserva cuando el periodo esté habilitado.</p>
       </div>
       <span class="connection-status" id="connectionStatus">Preparando conexión…</span>
     </section>
 
     <div class="system-message" id="systemMessage" role="status" aria-live="polite" hidden></div>
 
+    <nav class="module-switch" aria-label="Tipo de reservación">
+      <button type="button" id="showPrivateClassrooms" aria-selected="true">Aulas</button>
+      <button type="button" id="showPrivateVehicles" aria-selected="false">Vehículos</button>
+    </nav>
+
+    <div id="classroomPrivateModule">
     <section class="cycle-banner panel" id="cycleBanner" hidden aria-live="polite">
       <div>
         <p class="eyebrow">Periodo de reservación</p>
@@ -167,6 +174,111 @@
         <div class="booking-list" id="adminBookingsList"><p class="empty-state">No hay reservas activas.</p></div>
       </section>
     </section>
+    </div>
+
+    <section id="vehiclePrivateModule" hidden aria-labelledby="vehiclePrivateTitle">
+      <section class="vehicle-panel vehicle-hero">
+        <div>
+          <p class="eyebrow">Transporte institucional</p>
+          <h2 id="vehiclePrivateTitle">Reservación de vehículos</h2>
+          <p>Selecciona el vehículo y la fecha en el calendario. Los espacios en verde permiten crear una reserva directamente.</p>
+        </div>
+        <span class="connection-status" id="vehicleConnectionStatus">Preparando vehículos…</span>
+      </section>
+
+      <div class="vehicle-card-grid" id="privateVehicleCards"></div>
+
+      <section class="vehicle-panel" aria-labelledby="privateVehicleCalendarTitle">
+        <div class="calendar-toolbar">
+          <div>
+            <p class="eyebrow">Disponibilidad mensual</p>
+            <h2 id="privateVehicleCalendarTitle">Calendario de reservaciones</h2>
+          </div>
+          <div class="calendar-controls">
+            <select id="privateVehicleSelect" aria-label="Seleccionar vehículo"></select>
+            <div class="calendar-nav">
+              <button type="button" id="privateVehiclePrevMonth" aria-label="Mes anterior">‹</button>
+              <span class="calendar-month-label" id="privateVehicleMonthLabel"></span>
+              <button type="button" id="privateVehicleNextMonth" aria-label="Mes siguiente">›</button>
+            </div>
+          </div>
+        </div>
+        <div class="vehicle-calendar-scroll">
+          <div class="vehicle-calendar" id="privateVehicleCalendar" aria-live="polite"></div>
+        </div>
+        <div class="vehicle-legend">
+          <span class="free"><i></i>Disponible para reservar</span>
+          <span><i></i>Reservado</span>
+          <span class="suspended"><i></i>Suspendido temporalmente</span>
+          <span class="maintenance"><i></i>Mantenimiento</span>
+        </div>
+      </section>
+
+      <section class="vehicle-panel" aria-labelledby="myVehicleReservationsTitle">
+        <div class="section-heading">
+          <div><p class="eyebrow">Tu agenda</p><h2 id="myVehicleReservationsTitle">Mis próximas reservas de vehículos</h2></div>
+          <button class="icon-button" id="refreshVehicleReservations" type="button" aria-label="Actualizar">↻</button>
+        </div>
+        <div class="vehicle-reservation-list" id="myVehicleReservations">
+          <p class="empty-state">No tienes reservas de vehículos próximas.</p>
+        </div>
+      </section>
+
+      <section class="vehicle-panel" id="vehicleAdminPanel" hidden aria-labelledby="vehicleAdminTitle">
+        <div class="section-heading">
+          <div><p class="eyebrow">Acceso administrativo</p><h2 id="vehicleAdminTitle">Gestión de vehículos</h2></div>
+        </div>
+        <div class="vehicle-admin-grid">
+          <form class="vehicle-admin-card" id="maintenanceForm">
+            <h3>Registrar mantenimiento</h3>
+            <div class="vehicle-form-grid">
+              <div class="field-wide"><label for="maintenanceVehicle">Vehículo</label><select id="maintenanceVehicle" required></select></div>
+              <div><label for="maintenanceStart">Inicio</label><input id="maintenanceStart" type="datetime-local" required /></div>
+              <div><label for="maintenanceEnd">Finalización (opcional)</label><input id="maintenanceEnd" type="datetime-local" /></div>
+              <div class="field-wide"><label for="maintenanceCategory">Tipo</label><select id="maintenanceCategory" required><option value="oil_change">Cambio de aceite</option><option value="minor_repair">Reparación menor</option><option value="major_repair">Reparación mayor</option></select></div>
+              <div class="field-wide"><label for="maintenanceDetails">Detalle interno (opcional)</label><textarea id="maintenanceDetails" maxlength="240" placeholder="Trabajo por realizar, taller o seguimiento"></textarea></div>
+            </div>
+            <div class="form-message" id="maintenanceMessage" hidden></div>
+            <button class="primary-button compact-button" type="submit">Bloquear por mantenimiento</button>
+            <div class="vehicle-reservation-list active-maintenance-list" id="activeMaintenanceList"></div>
+          </form>
+
+          <form class="vehicle-admin-card" id="serviceScheduleForm">
+            <h3>Mantenimiento preventivo y DEKRA</h3>
+            <div class="vehicle-form-grid">
+              <div class="field-wide"><label for="serviceVehicle">Vehículo</label><select id="serviceVehicle" required></select></div>
+              <div><label for="currentMileage">Kilometraje actual</label><input id="currentMileage" type="number" min="0" step="1" /></div>
+              <div><label for="nextOilMileage">Próximo cambio (km)</label><input id="nextOilMileage" type="number" min="0" step="1" /></div>
+              <div><label for="nextOilDate">Próximo cambio (fecha)</label><input id="nextOilDate" type="date" /></div>
+              <div><label for="nextDekraMonth">Próxima DEKRA</label><input id="nextDekraMonth" type="month" /></div>
+              <div class="field-wide"><label for="serviceNotes">Notas internas (opcional)</label><textarea id="serviceNotes" maxlength="240"></textarea></div>
+            </div>
+            <div class="form-message" id="serviceMessage" hidden></div>
+            <button class="primary-button compact-button" type="submit">Guardar programación</button>
+          </form>
+        </div>
+
+        <section class="vehicle-admin-card vehicle-admin-section">
+          <h3>Reservas suspendidas por mantenimiento</h3>
+          <div class="vehicle-reservation-list" id="suspendedVehicleReservations">
+            <p class="empty-state">No hay reservas suspendidas.</p>
+          </div>
+        </section>
+
+        <section class="vehicle-admin-card vehicle-admin-section">
+          <h3>Reservas activas de vehículos</h3>
+          <div class="vehicle-reservation-list" id="adminVehicleReservations">
+            <p class="empty-state">No hay reservas activas.</p>
+          </div>
+        </section>
+
+        <section class="vehicle-admin-card vehicle-admin-section">
+          <h3>Próximas obligaciones administrativas</h3>
+          <p class="form-note">Incluye alertas de revisión técnica DEKRA visibles únicamente para administración.</p>
+          <div class="service-public-grid" id="adminServiceAlerts"></div>
+        </section>
+      </section>
+    </section>
   </main>
 
   <dialog class="schedule-dialog password-dialog" id="passwordDialog">
@@ -271,10 +383,36 @@
     </form>
   </dialog>
 
+  <dialog class="vehicle-dialog" id="vehicleBookingDialog">
+    <form id="vehicleBookingForm" method="dialog">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Reservación de vehículos</p><h2>Nueva reserva</h2></div>
+        <button class="dialog-close" id="closeVehicleBookingDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <p class="vehicle-dialog-note">Indica la salida y el regreso. El responsable se asigna automáticamente a la cuenta docente.</p>
+      <div class="vehicle-form-grid">
+        <div class="field-wide"><label for="vehicleBookingVehicle">Vehículo</label><select id="vehicleBookingVehicle" required></select></div>
+        <div><label for="vehicleBookingStart">Fecha y hora de salida</label><input id="vehicleBookingStart" type="datetime-local" required /></div>
+        <div><label for="vehicleBookingEnd">Fecha y hora de regreso</label><input id="vehicleBookingEnd" type="datetime-local" required /></div>
+        <div class="field-wide" id="vehicleResponsibleField" hidden><label for="vehicleBookingResponsible">Reservar a nombre de</label><select id="vehicleBookingResponsible"></select></div>
+        <div class="field-wide"><label for="vehicleBookingDestination">Destino</label><input id="vehicleBookingDestination" maxlength="160" required /></div>
+        <div class="field-wide"><label for="vehicleBookingObjective">Objetivo de la gira</label><textarea id="vehicleBookingObjective" maxlength="240" required></textarea></div>
+        <div><label for="vehicleDriverOne">Chofer adicional 1 (opcional)</label><input id="vehicleDriverOne" maxlength="100" /></div>
+        <div><label for="vehicleDriverTwo">Chofer adicional 2 (opcional)</label><input id="vehicleDriverTwo" maxlength="100" /></div>
+      </div>
+      <div class="vehicle-message" id="vehicleBookingMessage" hidden></div>
+      <div class="dialog-actions">
+        <button class="secondary-button" id="cancelVehicleBooking" type="button">Cancelar</button>
+        <button class="primary-button compact-button" type="submit">Confirmar reserva</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=18"></script>
+  <script src="reservas.js?v=19"></script>
+  <script src="vehiculos.js?v=1"></script>
 </body>
 </html>
