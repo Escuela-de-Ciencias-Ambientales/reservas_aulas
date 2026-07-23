@@ -368,19 +368,19 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .schedule-editor { margin:22px 0; padding:22px; border:1px solid var(--reserve-line); border-radius:16px; background:#fff; }
 .editor-room-filter { min-width:170px; }
 .editor-room-filter label { margin-top:0; }
-.weekly-editor { display:grid; grid-template-columns:150px repeat(6,minmax(160px,1fr)); margin-top:18px; overflow-x:auto; border:1px solid var(--reserve-line); border-radius:14px; }
-.weekly-editor-cell { min-width:160px; min-height:132px; padding:10px; border-right:1px solid var(--reserve-line); border-bottom:1px solid var(--reserve-line); background:#fbfcfc; }
+.weekly-editor { display:grid; grid-template-columns:92px repeat(6,minmax(0,1fr)); width:100%; margin-top:18px; overflow:visible; border:1px solid var(--reserve-line); border-radius:14px; }
+.weekly-editor-cell { min-width:0; min-height:132px; padding:9px; border-right:1px solid var(--reserve-line); border-bottom:1px solid var(--reserve-line); background:#fbfcfc; }
 .weekly-editor-cell:nth-child(7n) { border-right:0; }
 .weekly-editor-header { min-height:auto; padding:11px 10px; color:var(--reserve-ink); background:#f1f5f3; font-size:12px; font-weight:900; letter-spacing:.06em; text-transform:uppercase; }
-.weekly-editor-shift { min-width:150px; color:var(--reserve-ink); background:#f7f9f8; }
+.weekly-editor-shift { min-width:0; padding:10px 8px; color:var(--reserve-ink); background:#f7f9f8; }
 .weekly-editor-shift strong,.weekly-editor-shift span { display:block; }
 .weekly-editor-shift span { margin-top:5px; color:var(--reserve-muted); font-size:12px; font-weight:600; text-transform:none; }
 .occupancy-card { margin-bottom:8px; padding:10px; border:1px solid #b9d5ca; border-left:4px solid var(--reserve-green); border-radius:10px; background:#fff; }
 .occupancy-card strong,.occupancy-card span { display:block; }
 .occupancy-card strong { line-height:1.25; }
 .occupancy-card span { margin-top:4px; color:var(--reserve-muted); font-size:12px; }
-.occupancy-actions { display:flex; gap:6px; margin-top:8px; }
-.occupancy-actions button { padding:5px 7px; border:0; border-radius:7px; font:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+.occupancy-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.occupancy-actions button { flex:1 1 54px; padding:5px 6px; border:0; border-radius:7px; font:inherit; font-size:11px; font-weight:800; cursor:pointer; }
 .edit-occupancy { color:var(--reserve-green); background:var(--reserve-green-soft); }
 .delete-occupancy { color:#9a1f29; background:#fff0f1; }
 .add-occupancy { width:100%; min-height:38px; margin-top:6px; border:1px dashed #bfd0ca; border-radius:9px; color:var(--reserve-green); background:transparent; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
@@ -546,7 +546,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .schedule-upload { align-items:flex-start; flex-direction:column; }
   .upload-actions { justify-content:flex-start; }
   .password-panel { grid-template-columns:1fr; }
-  .weekly-editor { grid-template-columns:130px repeat(6,minmax(150px,1fr)); }
+  .weekly-editor { grid-template-columns:86px repeat(6,minmax(128px,1fr)); overflow-x:auto; }
 }
 
 @media (max-width: 640px) {
