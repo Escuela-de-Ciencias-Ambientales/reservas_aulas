@@ -5,7 +5,7 @@
   const isConfigured = Boolean(config.supabaseUrl && config.supabaseAnonKey);
   const roomCodes = ['L601', 'L602', 'L603', '708', '709', '710', '711'];
   const roomDisplayNames = {
-    L601: 'Laboratorio L01',
+    L601: 'Laboratorio L601',
     L602: 'Laboratorio L602',
     L603: 'Laboratorio L603'
   };
@@ -453,7 +453,7 @@
     state.profile = data; renderSession();
   }
   async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); }
-  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=3'); }
+  async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=4'); }
 
   async function saveReservation(event) {
     event.preventDefault(); clearMessage();
@@ -733,9 +733,9 @@
     try {
       state.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
       elements.connectionStatus.textContent = 'Sistema disponible'; const { data } = await state.client.auth.getSession(); state.session = data.session;
-      if (!state.session) { window.location.replace('ingreso.html?v=3'); return; }
+      if (!state.session) { window.location.replace('ingreso.html?v=4'); return; }
       await loadProfile(); await loadRooms(); await reloadAll();
-      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=3'); });
+      state.client.auth.onAuthStateChange(async (_event, session) => { state.session = session; if (session) { await loadProfile(); await reloadAll(); } else window.location.replace('ingreso.html?v=4'); });
     } catch (error) { elements.connectionStatus.textContent = 'Conexión no disponible'; elements.connectionStatus.classList.add('is-offline'); showMessage(`No fue posible conectar con el sistema: ${error.message}`, 'error'); }
   }
   initialize();
