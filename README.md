@@ -10,16 +10,19 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - Área privada de reservas disponible únicamente después de iniciar sesión.
 - Vista diaria de tramos disponibles y ocupados para cada aula dentro del área privada.
 - Inicio de sesión individual con correo y contraseña.
+- Registro inicial únicamente para docentes autorizados previamente por la administración.
+- Cambio de contraseña personal con validación de seguridad.
 - Creación de reservas por fecha, aula, hora de inicio, hora de finalización y actividad.
+- Reserva directa desde cualquier tramo disponible, con horario máximo hasta las 21:00.
 - Bloqueo de cruces con clases fijas y con otras reservas.
 - Lista personal de próximas reservas y cancelación por parte del propietario.
 - Acceso maestro para consultar y cancelar cualquier reserva.
-- Creación de cuentas docentes y administrativas desde el panel maestro.
+- Creación individual de cuentas y carga masiva de docentes autorizados mediante Excel.
 - Diseño adaptable para computadora, tableta y teléfono.
 - Registro de cancelaciones y reglas de seguridad en la base de datos.
 - Ciclos configurables por la administración, incluidas las fechas reservables y la ventana de apertura del sistema.
 - Reservas cerradas por defecto: solo pueden abrirse después de cargar la ocupación académica prioritaria.
-- Carga y reemplazo del horario de clases mediante una plantilla CSV desde el panel maestro.
+- Carga y reemplazo del horario de clases mediante una plantilla Excel desde el panel maestro.
 
 ## Estructura
 
@@ -32,8 +35,10 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 - `config.js`: conexión pública con Supabase.
 - `supabase/migrations/`: esquema, restricciones y políticas de seguridad.
 - `supabase/seed.sql`: ocupaciones académicas iniciales que bloquean reservas.
-- `plantilla_ocupacion.csv`: plantilla para cargar las clases de cada nuevo ciclo.
-- `supabase/functions/admin-create-user/`: función segura para crear cuentas.
+- `plantillas/plantilla_ocupacion_aulas.xlsx`: plantilla para cargar las clases de cada nuevo ciclo.
+- `plantillas/plantilla_cuentas_docentes.xlsx`: plantilla para autorizar o crear docentes en lote.
+- `supabase/functions/admin-create-user/`: función segura para autorizar o crear cuentas.
+- `supabase/functions/register-teacher/`: registro inicial restringido a la lista administrativa.
 - `.github/workflows/pages.yml`: publicación automática en GitHub Pages.
 
 ## Configuración de Supabase
@@ -41,7 +46,7 @@ Sistema pequeño de consulta y reserva de aulas para la Escuela de Ciencias Ambi
 1. Crear un proyecto de Supabase.
 2. Ejecutar, en orden, las migraciones de `supabase/migrations/`.
 3. Ejecutar `supabase/seed.sql`.
-4. Desplegar la función `admin-create-user`.
+4. Desplegar las funciones `admin-create-user` y `register-teacher`.
 5. En Authentication, desactivar el registro público de usuarios.
 6. Crear manualmente la primera cuenta administrativa.
 7. Ejecutar `supabase/bootstrap-admin.sql.example` con el correo real de esa cuenta.
@@ -53,11 +58,11 @@ La clave `anon` de Supabase está diseñada para utilizarse en el navegador. La 
 
 ## Flujo de cuentas
 
-La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear las cuentas de los docentes desde la propia página. Cada profesor accede con una contraseña única y un correo con el formato `nombre.apellido.apellido@una.cr`. Su perfil visible muestra únicamente su nombre.
+La primera cuenta maestra se crea desde el panel de Supabase. A partir de ahí, el administrador puede crear una cuenta individual o cargar el Excel de docentes. Si una fila no contiene contraseña, el correo queda autorizado para que el profesor complete su registro inicial; si contiene una contraseña válida, la cuenta se crea inmediatamente. Una persona que no esté en la lista administrativa no puede registrarse. Cada profesor accede con un correo con el formato `nombre.apellido.apellido@una.cr` y puede cambiar su contraseña.
 
 ## Apertura de cada ciclo
 
-El administrador configura el nombre y las fechas del ciclo, así como la apertura y el cierre del sistema. Guardar la configuración deja las reservas cerradas. Después se carga la ocupación académica con `plantilla_ocupacion.csv`; esta operación reemplaza el horario fijo del ciclo y también mantiene el sistema cerrado. Solo entonces se habilita el botón **Abrir reservas**. Las clases cargadas siempre tienen prioridad sobre las solicitudes docentes.
+El administrador configura el nombre y las fechas del ciclo, así como la apertura y el cierre del sistema. Guardar la configuración deja las reservas cerradas. Después se carga la ocupación académica con `plantilla_ocupacion_aulas.xlsx`; esta operación reemplaza el horario fijo del ciclo y también mantiene el sistema cerrado. Solo entonces se habilita el botón **Abrir reservas**. Las clases cargadas siempre tienen prioridad sobre las solicitudes docentes.
 
 ## Seguridad
 

@@ -21,7 +21,13 @@ input:focus { border-color:var(--green); outline:3px solid rgba(8,122,85,.13); }
 button { width:100%; min-height:50px; margin-top:20px; border:0; border-radius:11px; color:#fff; background:var(--red); font:inherit; font-weight:800; cursor:pointer; }
 button:hover,button:focus-visible { background:var(--red-dark); }
 button:disabled { cursor:not-allowed; opacity:.55; }
+.access-tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:20px 0; padding:5px; border-radius:12px; background:#f1f5f3; }
+.tab-button { min-height:42px; margin:0; color:var(--muted); background:transparent; }
+.tab-button:hover,.tab-button:focus-visible { color:var(--ink); background:#fff; }
+.tab-button.is-active { color:#fff; background:var(--green); box-shadow:0 4px 12px rgba(8,122,85,.18); }
+.password-help { margin:8px 0 0; color:var(--muted); font-size:13px; line-height:1.4; }
 .login-panel small { display:block; margin-top:18px; color:var(--muted); line-height:1.45; }
 .message { margin:0 0 16px; padding:11px 12px; border-radius:10px; color:#8f1c27; background:#fff0f1; font-size:14px; }
+.message.is-success { color:#075c40; background:#eff9f4; }
 @media (max-width:760px) { body { background:#f8faf9; } .access-header { padding:16px 0; } .brand { font-size:17px; } .brand img { width:62px;height:62px; } .una-logo { width:70px;height:60px; } .access-main { grid-template-columns:1fr; gap:30px; padding:24px 0 52px; } .access-copy h1 { font-size:46px; } .access-copy > p:not(.eyebrow) { font-size:16px; } .login-panel { padding:24px; } }
 @media (max-width:430px) { .brand span { max-width:155px; line-height:1.1; } .access-copy h1 { font-size:39px; } }

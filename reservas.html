@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=4" />
+  <link rel="stylesheet" href="reservas.css?v=6" />
 </head>
 <body>
   <header class="private-header">
@@ -17,7 +17,13 @@
         <img src="logo-edeca.png" alt="Escuela de Ciencias Ambientales" />
         <span>Escuela de Ciencias Ambientales</span>
       </a>
-      <a class="back-to-schedule" href="index.html">Ver ocupación pública</a>
+      <div class="header-actions">
+        <a class="back-to-schedule" href="index.html">Ver ocupación pública</a>
+        <div class="header-account" id="headerAccount" hidden>
+          <strong id="currentUserName">Docente</strong>
+          <button class="text-button" id="logoutButton" type="button">Cerrar sesión</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -43,11 +49,6 @@
     </section>
 
     <section class="user-view" id="userView" hidden>
-      <div class="account-strip">
-        <strong id="currentUserName">Docente</strong>
-        <div class="account-actions"><button class="text-button" id="logoutButton" type="button">Cerrar sesión</button></div>
-      </div>
-
       <div class="booking-grid">
         <form class="booking-form" id="bookingForm">
           <div class="form-heading">
@@ -58,7 +59,7 @@
             <div><label for="bookingDate">Fecha</label><input id="bookingDate" name="date" type="date" required /></div>
             <div><label for="bookingRoom">Aula</label><select id="bookingRoom" name="room" required></select></div>
             <div><label for="bookingStart">Hora de inicio</label><input id="bookingStart" name="start" type="time" min="07:00" max="21:00" step="1800" required /></div>
-            <div><label for="bookingEnd">Hora de finalización</label><input id="bookingEnd" name="end" type="time" min="07:30" max="21:30" step="1800" required /></div>
+            <div><label for="bookingEnd">Hora de finalización</label><input id="bookingEnd" name="end" type="time" min="07:30" max="21:00" step="1800" required /></div>
           </div>
           <label for="bookingActivity">Actividad</label>
           <input id="bookingActivity" name="activity" type="text" maxlength="120" placeholder="Ej.: Reunión de proyecto" required />
@@ -74,6 +75,19 @@
           <div class="booking-list" id="myBookingsList"><p class="empty-state">No tienes reservas próximas.</p></div>
         </section>
       </div>
+
+      <section class="password-panel panel" aria-labelledby="passwordTitle">
+        <div>
+          <p class="eyebrow">Seguridad de la cuenta</p>
+          <h2 id="passwordTitle">Cambiar contraseña</h2>
+          <p>Usa al menos 8 caracteres, una letra mayúscula y un número.</p>
+        </div>
+        <form id="changePasswordForm" class="password-form">
+          <div><label for="newPassword">Nueva contraseña</label><input id="newPassword" name="password" type="password" minlength="8" autocomplete="new-password" required /></div>
+          <div><label for="confirmPassword">Confirmar contraseña</label><input id="confirmPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" required /></div>
+          <button class="primary-button compact-button" type="submit">Actualizar contraseña</button>
+        </form>
+      </section>
     </section>
 
     <section class="reservation-board panel" id="reservationBoard" aria-labelledby="boardTitle" hidden>
@@ -108,9 +122,9 @@
         <div class="schedule-upload">
           <div><h3>Ocupación académica prioritaria</h3><p id="scheduleStatus">Aún no se ha cargado para este ciclo.</p></div>
           <div class="upload-actions">
-            <a class="secondary-button" href="plantilla_ocupacion.csv" download>Descargar plantilla CSV</a>
-            <label class="secondary-button file-button" for="scheduleFile">Seleccionar CSV</label>
-            <input id="scheduleFile" type="file" accept=".csv,text/csv" />
+            <a class="secondary-button" href="plantillas/plantilla_ocupacion_aulas.xlsx" download>Descargar plantilla Excel</a>
+            <label class="secondary-button file-button" for="scheduleFile">Seleccionar Excel</label>
+            <input id="scheduleFile" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" />
             <button class="primary-button compact-button" id="uploadScheduleButton" type="button">Cargar y reemplazar horario</button>
           </div>
         </div>
@@ -119,23 +133,36 @@
           <button class="primary-button compact-button" id="toggleReservationsButton" type="button" disabled>Abrir reservas</button>
         </div>
       </section>
-      <div class="admin-grid">
+      <div class="account-management-grid">
         <form class="admin-form" id="createUserForm">
-          <h3>Crear cuenta docente</h3>
+          <h3>Crear una cuenta</h3>
           <p class="form-note account-limit-note">Máximo permitido: 50 cuentas docentes activas.</p>
           <label for="newUserName">Nombre completo</label><input id="newUserName" name="name" maxlength="100" required />
           <label for="newUserEmail">Correo electrónico</label><input id="newUserEmail" name="email" type="email" placeholder="nombre.apellido.apellido@una.cr" pattern="[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+@una\.cr" title="Usa el formato nombre.apellido.apellido@una.cr" required />
-          <label for="newUserPassword">Contraseña temporal</label><input id="newUserPassword" name="password" type="password" minlength="8" required />
+          <label for="newUserPassword">Contraseña temporal</label><input id="newUserPassword" name="password" type="password" minlength="8" pattern="(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Mínimo 8 caracteres, una mayúscula y un número" required />
           <label for="newUserRole">Tipo de acceso</label><select id="newUserRole" name="role"><option value="teacher">Docente</option><option value="admin">Administrador</option></select>
           <button class="primary-button" type="submit">Crear cuenta</button>
         </form>
-        <section><h3>Reservas activas</h3><div class="booking-list" id="adminBookingsList"><p class="empty-state">No hay reservas activas.</p></div></section>
+        <section class="bulk-users-card">
+          <h3>Cargar docentes desde Excel</h3>
+          <p>Nombre y correo autorizan el registro personal. Si agregas una contraseña temporal, la cuenta se crea de inmediato.</p>
+          <a class="secondary-button full-button" href="plantillas/plantilla_cuentas_docentes.xlsx" download>Descargar plantilla de cuentas</a>
+          <label class="secondary-button file-button full-button" for="usersFile">Seleccionar Excel</label>
+          <input id="usersFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" />
+          <p class="file-summary" id="usersFileSummary">No se ha seleccionado ningún archivo.</p>
+          <button class="primary-button" id="uploadUsersButton" type="button">Procesar docentes</button>
+        </section>
       </div>
+      <section class="admin-bookings">
+        <h3>Reservas activas</h3>
+        <div class="booking-list" id="adminBookingsList"><p class="empty-state">No hay reservas activas.</p></div>
+      </section>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=4"></script>
-  <script src="reservas.js?v=4"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="config.js?v=5"></script>
+  <script src="reservas.js?v=6"></script>
 </body>
 </html>
