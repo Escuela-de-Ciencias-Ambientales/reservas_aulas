@@ -17,6 +17,7 @@
   const localDateTime = (date) => `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   const formatDateTime = (value) => new Intl.DateTimeFormat('es-CR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
+  const vehicleImage = (value = '') => String(value).replace(/\.webp$/i, '.jpg');
 
   function setMessage(element, text, success = false) {
     if (!element) return;
@@ -72,7 +73,7 @@
     $('privateVehicleCards').innerHTML = state.vehicles.map((vehicle) => {
       const maintenance = currentMaintenance(vehicle.id);
       return `<article class="vehicle-card">
-        <img src="${escapeHtml(vehicle.image_path || '')}" alt="${escapeHtml(vehicle.display_name)}" />
+        <img src="${escapeHtml(vehicleImage(vehicle.image_path))}" alt="${escapeHtml(vehicle.display_name)}" />
         <div class="vehicle-card-body">
           <div><h3>${escapeHtml(vehicle.plate)}</h3><p>${escapeHtml(vehicle.display_name)}</p></div>
           <span class="status-chip${maintenance ? ' is-maintenance' : ''}">${maintenance ? `En mantenimiento · ${escapeHtml(categories[maintenance.category])}` : 'Disponible'}</span>

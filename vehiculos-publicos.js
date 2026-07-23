@@ -19,6 +19,7 @@
   const localDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
   const escapeHtml = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+  const vehicleImage = (value = '') => String(value).replace(/\.webp$/i, '.jpg');
 
   function setModule(module) {
     const vehicles = module === 'vehicles';
@@ -45,7 +46,7 @@
       const maintenance = vehicle.maintenance_category;
       const status = maintenance ? `En mantenimiento · ${categoryNames[maintenance] || 'Mantenimiento'}` : 'Disponible';
       return `<article class="vehicle-card">
-        <img src="${escapeHtml(vehicle.image_path || '')}" alt="${escapeHtml(vehicle.display_name)}" />
+        <img src="${escapeHtml(vehicleImage(vehicle.image_path))}" alt="${escapeHtml(vehicle.display_name)}" />
         <div class="vehicle-card-body">
           <div><h3>${escapeHtml(vehicle.plate)}</h3><p>${escapeHtml(vehicle.display_name)}</p></div>
           <span class="status-chip${maintenance ? ' is-maintenance' : ''}">${escapeHtml(status)}</span>

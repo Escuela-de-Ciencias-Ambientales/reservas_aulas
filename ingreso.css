@@ -26,6 +26,7 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .tab-button:hover,.tab-button:focus-visible { color:var(--ink); background:#fff; }
 .tab-button.is-active { color:#fff; background:var(--green); box-shadow:0 4px 12px rgba(8,122,85,.18); }
 .password-help { margin:8px 0 0; color:var(--muted); font-size:13px; line-height:1.4; }
+.password-recommendation { margin:7px 0 16px; color:#087a55; font-weight:700; }
 .login-panel small { display:block; margin-top:18px; color:var(--muted); line-height:1.45; }
 .message { margin:0 0 16px; padding:11px 12px; border-radius:10px; color:#8f1c27; background:#fff0f1; font-size:14px; }
 .message.is-success { color:#075c40; background:#eff9f4; }
