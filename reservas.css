@@ -226,7 +226,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .access-summary ol { margin: 0 0 18px; padding-left: 22px; line-height: 1.8; }
 .access-summary p { max-width: 48ch; margin: 0; color: rgba(255,255,255,.8); line-height: 1.55; }
 
-.booking-form { padding:30px; }
+.booking-form { display:flex; flex-direction:column; padding:30px; }
 .form-heading { gap: 14px; margin-bottom: 22px; }
 .form-heading div { display: grid; gap: 3px; }
 .form-heading strong { color: var(--reserve-ink); font-size: 21px; }
@@ -245,6 +245,7 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   font-weight: 900;
 }
 
+.booking-form label,
 .reservation-portal label,
 .reservation-board label,
 .admin-panel label,
@@ -258,6 +259,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   text-transform: uppercase;
 }
 
+.booking-form input,
+.booking-form select,
 .reservation-portal input,
 .reservation-portal select,
 .reservation-board input,
@@ -275,6 +278,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   font-size: 16px;
 }
 
+.booking-form input:focus,
+.booking-form select:focus,
 .reservation-portal input:focus,
 .reservation-portal select:focus,
 .reservation-board input:focus,
@@ -329,6 +334,8 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px 24px; }
 .booking-form .field-grid > div { display:grid; gap:7px; min-width:0; }
 .booking-form .field-grid label { margin:0; }
+.booking-form #adminProfessorField { display:grid; gap:7px; margin-top:20px; }
+.booking-form #adminProfessorField label { margin:0; }
 .booking-form > label[for="bookingActivity"] { margin-top:22px; }
 .booking-form input,.booking-form select { min-height:54px; }
 

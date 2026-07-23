@@ -287,7 +287,7 @@
       const cells = days.map((day) => {
         const dayRecords = state.fixedOccupancies.filter((item) => item.classrooms?.code === room && item.day_of_week === day.id);
         const records = dayRecords.filter((item) => shiftForTime(item.start_time) === shift.id);
-        const gapButtons = freeScheduleGaps(dayRecords, shift.start, shift.end).map((gap) => `<button class="add-occupancy" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${minutesToTime(gap.start)}" data-end="${minutesToTime(gap.end)}">+ Añadir ${minutesToTime(gap.start)}–${minutesToTime(gap.end)}</button>`).join('');
+        const gapButtons = freeScheduleGaps(dayRecords, shift.start, shift.end).map((gap) => `<button class="add-occupancy" type="button" data-add-occupancy data-room="${escapeHtml(room)}" data-day="${day.id}" data-start="${minutesToTime(gap.start)}" data-end="${minutesToTime(gap.end)}">Reservar ${minutesToTime(gap.start)}–${minutesToTime(gap.end)}</button>`).join('');
         return `<div class="weekly-editor-cell">${records.map((item) => `<article class="occupancy-card"><strong>${escapeHtml(item.label)}</strong><span>${normalizeTime(item.start_time)}–${normalizeTime(item.end_time)}</span><div class="occupancy-actions"><button class="edit-occupancy" type="button" data-edit-occupancy="${item.id}">Editar</button><button class="delete-occupancy" type="button" data-delete-occupancy="${item.id}">Eliminar</button></div></article>`).join('')}${gapButtons || '<span class="no-gap">Sin espacio libre</span>'}</div>`;
       }).join('');
       return `<div class="weekly-editor-cell weekly-editor-header weekly-editor-shift"><strong>${shift.label}</strong><span>${shift.detail}</span></div>${cells}`;
@@ -302,7 +302,7 @@
     elements.scheduleEntryStart.value = normalizeTime(record?.start_time || defaults.start || '08:00');
     elements.scheduleEntryEnd.value = normalizeTime(record?.end_time || defaults.end || '09:00');
     elements.scheduleEntryLabel.value = record?.label || '';
-    elements.scheduleDialogTitle.textContent = record ? 'Editar ocupación' : 'Añadir ocupación';
+    elements.scheduleDialogTitle.textContent = record ? 'Editar ocupación' : 'Reservar espacio';
     elements.scheduleDialog.showModal();
     window.setTimeout(() => elements.scheduleEntryLabel.focus(), 80);
   }
