@@ -118,8 +118,9 @@
           return `<span class="vehicle-event is-maintenance">${escapeHtml(categoryNames[event.category] || 'Mantenimiento')}</span>`;
         }
         const suspended = event.status === 'suspended_maintenance';
-        const label = suspended ? 'Suspendida temporalmente' : `${formatTime(event.starts_at)}–${formatTime(event.ends_at)}`;
-        return `<span class="vehicle-event${suspended ? ' is-suspended' : ''}" title="${escapeHtml(event.responsible_name || '')}">${escapeHtml(label)}<br>${escapeHtml(event.responsible_name || '')}</span>`;
+        const pending = event.status === 'pending_approval';
+        const label = suspended ? 'Suspendida temporalmente' : pending ? 'Pendiente de aprobación' : `${formatTime(event.starts_at)}–${formatTime(event.ends_at)}`;
+        return `<span class="vehicle-event${suspended ? ' is-suspended' : ''}${pending ? ' is-pending' : ''}" title="${escapeHtml(event.responsible_name || '')}">${escapeHtml(label)}<br>${escapeHtml(event.responsible_name || '')}</span>`;
       }).join('');
       html += `<div class="vehicle-day${outside ? ' is-outside' : ''}${localDate(day) === today ? ' is-today' : ''}">
         <span class="vehicle-day-number">${day.getDate()}</span>

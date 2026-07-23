@@ -179,6 +179,7 @@
   text-align: left;
 }
 .vehicle-event.is-suspended { color: #7d4b00; background: var(--vehicle-amber-soft); }
+.vehicle-event.is-pending { color: #754900; background: #fff2c9; }
 .vehicle-event.is-maintenance { color: #fff; background: #53615d; }
 .vehicle-free-button {
   border: 1px dashed #9fcfbd;
@@ -194,6 +195,7 @@
 .vehicle-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .vehicle-legend i { width: 11px; height: 11px; border-radius: 3px; background: var(--vehicle-red-soft); }
 .vehicle-legend .free i { background: var(--vehicle-green-soft); }
+.vehicle-legend .pending i { background: #fff2c9; }
 .vehicle-legend .suspended i { background: var(--vehicle-amber-soft); }
 .vehicle-legend .maintenance i { background: #53615d; }
 
@@ -232,6 +234,8 @@
   background: #fff;
 }
 .vehicle-reservation-item.is-suspended { border-color: #efc977; background: #fffaf0; }
+.vehicle-reservation-item.is-pending { border-color: #e8c15e; background: #fffaf0; }
+.vehicle-reservation-item.is-photo-pending { border-color: #d99199; background: #fff7f7; }
 .vehicle-plate { padding: 9px 10px; border-radius: 9px; color: var(--vehicle-ink); background: #eaf1f8; font-weight: 900; }
 .vehicle-reservation-item h4 { margin: 0; color: var(--vehicle-ink); }
 .vehicle-reservation-item p { margin: 3px 0 0; color: var(--vehicle-muted); font-size: 13px; }
@@ -256,6 +260,17 @@
   font: inherit;
 }
 .vehicle-form-grid textarea { min-height: 88px; resize: vertical; }
+.vehicle-override-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #d8e2de;
+  border-radius: 12px;
+  background: #f7faf8;
+  text-transform: none !important;
+}
+.vehicle-override-option input { width: 20px; min-height: 20px; margin: 0; }
 .vehicle-admin-card .primary-button,
 .vehicle-admin-card .secondary-button { margin-top: 16px; }
 .vehicle-admin-card .compact-heading > .secondary-button { margin-top: 0; }
@@ -295,6 +310,33 @@
   text-transform: uppercase;
 }
 .vehicle-detail-grid dd { margin: 0; color: var(--vehicle-ink); font-size: 15px; font-weight: 700; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.trip-photo-panel .section-heading p { max-width: 720px; }
+.trip-photo-input {
+  display: grid;
+  min-height: 110px;
+  place-items: center;
+  padding: 20px;
+  border: 2px dashed #9ebdb2;
+  border-radius: 14px;
+  color: var(--vehicle-green-dark);
+  background: #f4faf7;
+  font-weight: 900;
+  text-align: center;
+  cursor: pointer;
+}
+.trip-photo-input input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+.trip-photo-preview,
+.trip-photo-detail img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  margin-top: 16px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #edf2f0;
+}
+.trip-photo-detail { margin-top: 22px; }
+.trip-photo-detail h3 { margin: 0 0 10px; }
 
 @media (max-width: 820px) {
   .vehicle-hero,

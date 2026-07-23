@@ -16,8 +16,8 @@ body { min-height:100vh; margin:0; color:var(--ink); background:linear-gradient(
 .login-panel h2 { margin:22px 0 4px; font-size:29px; }
 .login-panel > p { margin:0 0 22px; color:var(--muted); }
 label { display:block; margin:15px 0 6px; font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
-input { width:100%; min-height:50px; padding:11px 13px; border:1px solid #cdd8d4; border-radius:11px; color:var(--ink); background:#fff; font:inherit; }
-input:focus { border-color:var(--green); outline:3px solid rgba(8,122,85,.13); }
+input,select { width:100%; min-height:50px; padding:11px 13px; border:1px solid #cdd8d4; border-radius:11px; color:var(--ink); background:#fff; font:inherit; }
+input:focus,select:focus { border-color:var(--green); outline:3px solid rgba(8,122,85,.13); }
 button { width:100%; min-height:50px; margin-top:20px; border:0; border-radius:11px; color:#fff; background:var(--red); font:inherit; font-weight:800; cursor:pointer; }
 button:hover,button:focus-visible { background:var(--red-dark); }
 button:disabled { cursor:not-allowed; opacity:.55; }
