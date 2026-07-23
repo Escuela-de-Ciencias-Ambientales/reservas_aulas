@@ -288,6 +288,19 @@
     if (cursor < end) gaps.push({ start: cursor, end });
     return gaps;
   }
+  function bindWeeklyReserveButtons() {
+    elements.weeklyEditor.querySelectorAll('[data-add-occupancy]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        openScheduleDialog(null, {
+          room: button.dataset.room,
+          day: button.dataset.day,
+          start: button.dataset.start,
+          end: button.dataset.end
+        });
+      });
+    });
+  }
   function renderWeeklyEditor() {
     if (!isAdmin() || !elements.editorRoom.value) return;
     const room = elements.editorRoom.value;
@@ -316,6 +329,7 @@
       return `<div class="weekly-editor-cell weekly-editor-header weekly-editor-shift"><strong>${shift.label}</strong><span>${shift.detail}</span></div>${cells}`;
     }).join('');
     elements.weeklyEditor.innerHTML = header + rows;
+    bindWeeklyReserveButtons();
   }
   function openScheduleDialog(record = null, defaults = {}) {
     elements.scheduleEntryForm.reset();
@@ -601,8 +615,6 @@
       if (cancelButton) cancelReservation(cancelButton.dataset.cancelReservation);
       const reserveButton = event.target.closest('[data-reserve-room]');
       if (reserveButton) selectAvailableSlot(reserveButton);
-      const addOccupancyButton = event.target.closest('[data-add-occupancy]');
-      if (addOccupancyButton) openScheduleDialog(null, { room: addOccupancyButton.dataset.room, day: addOccupancyButton.dataset.day, start: addOccupancyButton.dataset.start, end: addOccupancyButton.dataset.end });
       const editOccupancyButton = event.target.closest('[data-edit-occupancy]');
       if (editOccupancyButton) openScheduleDialog(state.fixedOccupancies.find((item) => String(item.id) === editOccupancyButton.dataset.editOccupancy));
       const deleteOccupancyButton = event.target.closest('[data-delete-occupancy]');
