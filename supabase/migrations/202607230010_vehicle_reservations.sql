@@ -46,8 +46,11 @@ create table if not exists public.vehicle_reservations (
   responsible_name text not null check (char_length(trim(responsible_name)) between 3 and 100),
   starts_at timestamptz not null,
   ends_at timestamptz not null,
+  party_size integer not null default 1 check (party_size between 1 and 60),
   destination text not null check (char_length(trim(destination)) between 2 and 160),
   objective text not null check (char_length(trim(objective)) between 3 and 240),
+  itinerary text not null check (char_length(trim(itinerary)) between 3 and 600),
+  observations text check (observations is null or char_length(trim(observations)) <= 600),
   additional_drivers text[] not null default '{}',
   status text not null default 'confirmed'
     check (status in ('confirmed', 'suspended_maintenance', 'cancelled')),
@@ -140,8 +143,10 @@ begin
   elsif not public.is_admin() then
     if old.user_id <> auth.uid() or new.status <> 'cancelled'
       or new.vehicle_id <> old.vehicle_id or new.starts_at <> old.starts_at
-      or new.ends_at <> old.ends_at or new.destination <> old.destination
-      or new.objective <> old.objective or new.additional_drivers <> old.additional_drivers then
+      or new.ends_at <> old.ends_at or new.party_size <> old.party_size
+      or new.destination <> old.destination or new.objective <> old.objective
+      or new.itinerary <> old.itinerary or new.observations is distinct from old.observations
+      or new.additional_drivers <> old.additional_drivers then
       raise exception using errcode = '42501', message = 'Solo puedes cancelar tus propias reservas';
     end if;
   end if;

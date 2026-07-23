@@ -5,7 +5,7 @@
   const config = window.RESERVAS_CONFIG || {};
   const state = {
     client: null, session: null, profile: null, cycle: null, vehicles: [], events: [],
-    reservations: [], maintenance: [], services: [], teachers: [], vehicleId: null,
+    reservations: [], history: [], maintenance: [], services: [], teachers: [], profiles: [], vehicleId: null,
     month: new Date(new Date().getFullYear(), new Date().getMonth(), 1), loaded: false
   };
   const categories = { oil_change: 'Cambio de aceite', minor_repair: 'Reparación menor', major_repair: 'Reparación mayor' };
@@ -17,6 +17,7 @@
   const localDateTime = (date) => `${localDate(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   const formatDateTime = (value) => new Intl.DateTimeFormat('es-CR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
   const formatTime = (value) => new Intl.DateTimeFormat('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value));
+  const statusNames = { confirmed: 'Confirmada', suspended_maintenance: 'Suspendida temporalmente', cancelled: 'Cancelada' };
   const vehicleImage = (value = '') => {
     const path = String(value);
     if (/mitsubishi/i.test(path) && window.VEHICLE_IMAGES?.mitsubishi) return window.VEHICLE_IMAGES.mitsubishi;
@@ -147,11 +148,47 @@
     $('vehicleBookingEnd').value = localDateTime(end);
     $('vehicleBookingDestination').value = item?.destination || '';
     $('vehicleBookingObjective').value = item?.objective || '';
+    $('vehicleBookingPartySize').value = item?.party_size || 1;
+    $('vehicleBookingItinerary').value = item?.itinerary === 'No indicado' ? '' : (item?.itinerary || '');
+    $('vehicleBookingObservations').value = item?.observations || '';
     $('vehicleDriverOne').value = item?.additional_drivers?.[0] || '';
     $('vehicleDriverTwo').value = item?.additional_drivers?.[1] || '';
     if (item && isAdmin()) $('vehicleBookingResponsible').value = item.user_id;
     setMessage($('vehicleBookingMessage'), '');
     $('vehicleBookingDialog').showModal();
+  }
+
+  function detailField(label, value, wide = false) {
+    return `<div${wide ? ' class="detail-wide"' : ''}><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || 'No indicado')}</dd></div>`;
+  }
+
+  function openReservationDetail(id) {
+    if (!isAdmin()) return;
+    const item = state.history.find((entry) => entry.id === id)
+      || state.reservations.find((entry) => entry.id === id);
+    if (!item) return;
+    const vehicle = state.vehicles.find((entry) => String(entry.id) === String(item.vehicle_id));
+    const profile = state.profiles.find((entry) => entry.id === item.user_id);
+    const drivers = item.additional_drivers || [];
+    const status = statusNames[item.status] || item.status;
+    $('vehicleDetailStatus').innerHTML = `<span class="status-chip${item.status === 'suspended_maintenance' ? ' is-maintenance' : ''}">${escapeHtml(status)}</span>`;
+    $('vehicleDetailGrid').innerHTML = [
+      detailField('Vehículo', `${vehicle?.plate || ''} · ${vehicle?.display_name || ''}`),
+      detailField('Profesor responsable', item.responsible_name),
+      detailField('Correo institucional', profile?.email || 'No indicado'),
+      detailField('Salida', formatDateTime(item.starts_at)),
+      detailField('Regreso', formatDateTime(item.ends_at)),
+      detailField('Cantidad de personas', String(item.party_size || 1)),
+      detailField('Destino', item.destination),
+      detailField('Objetivo de la gira', item.objective, true),
+      detailField('Itinerario', item.itinerary, true),
+      detailField('Observaciones', item.observations || 'Sin observaciones', true),
+      detailField('Chofer adicional 1', drivers[0] || 'No indicado'),
+      detailField('Chofer adicional 2', drivers[1] || 'No indicado'),
+      detailField('Fecha de registro', formatDateTime(item.created_at)),
+      detailField('Identificador', item.id)
+    ].join('');
+    $('vehicleReservationDetailDialog').showModal();
   }
 
   function renderReservationList(target, items, adminControls = false) {
@@ -165,18 +202,18 @@
       let controls = '';
       if (adminControls) {
         controls = `<div class="vehicle-admin-actions">
-          ${suspended ? `<button class="secondary-button compact-button" type="button" data-vehicle-action="reactivate" data-id="${item.id}">Reactivar</button>` : `<button class="secondary-button compact-button" type="button" data-edit-vehicle="${item.id}">Editar</button>`}
+          <button class="secondary-button compact-button" type="button" data-detail-vehicle="${item.id}">Ver detalle</button>
+          ${item.status === 'cancelled' ? '' : `${suspended ? `<button class="secondary-button compact-button" type="button" data-vehicle-action="reactivate" data-id="${item.id}">Reactivar</button>` : `<button class="secondary-button compact-button" type="button" data-edit-vehicle="${item.id}">Editar</button>`}
           <button class="secondary-button compact-button" type="button" data-vehicle-action="reassign" data-id="${item.id}">Reasignar</button>
-          <button class="danger-button" type="button" data-vehicle-action="cancel" data-id="${item.id}">Cancelar</button>
+          <button class="danger-button" type="button" data-vehicle-action="cancel" data-id="${item.id}">Cancelar</button>`}
         </div>`;
-        /* controls intentionally differ by status */
       } else if (!adminControls && item.status !== 'cancelled') {
         controls = `<button class="danger-button" type="button" data-cancel-vehicle="${item.id}">Cancelar</button>`;
       }
       return `<article class="vehicle-reservation-item${suspended ? ' is-suspended' : ''}">
         <span class="vehicle-plate">${escapeHtml(vehicle?.plate || 'Vehículo')}</span>
         <div><h4>${escapeHtml(item.destination)}</h4><p>${formatDateTime(item.starts_at)} → ${formatDateTime(item.ends_at)}</p>
-        <p>${escapeHtml(item.responsible_name)} · ${escapeHtml(item.objective)}${suspended ? ' · Suspendida temporalmente por mantenimiento' : ''}</p></div>
+        <p>${escapeHtml(item.responsible_name)} · ${escapeHtml(item.objective)} · ${escapeHtml(statusNames[item.status] || item.status)}</p></div>
         ${controls}
       </article>`;
     }).join('');
@@ -184,10 +221,12 @@
     target.querySelectorAll('[data-vehicle-action]').forEach((button) => button.addEventListener('click', () => resolveReservation(button.dataset.id, button.dataset.vehicleAction)));
     target.querySelectorAll('[data-edit-vehicle]').forEach((button) => {
       button.addEventListener('click', () => {
-        const item = state.reservations.find((entry) => entry.id === button.dataset.editVehicle);
+        const item = state.history.find((entry) => entry.id === button.dataset.editVehicle)
+          || state.reservations.find((entry) => entry.id === button.dataset.editVehicle);
         if (item) openBooking(localDate(new Date(item.starts_at)), item);
       });
     });
+    target.querySelectorAll('[data-detail-vehicle]').forEach((button) => button.addEventListener('click', () => openReservationDetail(button.dataset.detailVehicle)));
   }
 
   function renderLists() {
@@ -196,6 +235,7 @@
     if (isAdmin()) {
       renderReservationList($('suspendedVehicleReservations'), state.reservations.filter((item) => item.status === 'suspended_maintenance'), true);
       renderReservationList($('adminVehicleReservations'), state.reservations.filter((item) => item.status === 'confirmed'), true);
+      renderReservationList($('adminVehicleHistoryList'), state.history, true);
     }
   }
 
@@ -262,8 +302,9 @@
     if (vehicleError) throw vehicleError;
     state.vehicles = vehicleData || []; state.cycle = cycleData || null;
     if (isAdmin()) {
-      const { data } = await state.client.from('profiles').select('id,full_name').eq('role', 'teacher').eq('active', true).order('full_name');
-      state.teachers = data || [];
+      const { data } = await state.client.from('profiles').select('id,full_name,email,active').eq('role', 'teacher').order('full_name');
+      state.profiles = data || [];
+      state.teachers = state.profiles.filter((profile) => profile.active);
     }
     renderVehicleOptions();
   }
@@ -280,13 +321,17 @@
       state.client.from('vehicle_reservations').select('*').lt('starts_at', queryTo.toISOString()).gt('ends_at', queryFrom.toISOString()).order('starts_at'),
       state.client.from('vehicle_maintenance').select('*').eq('active', true).lt('starts_at', queryTo.toISOString()).or(`ends_at.is.null,ends_at.gt.${queryFrom.toISOString()}`).order('starts_at')
     ];
-    if (isAdmin()) queries.push(state.client.from('vehicle_service_schedules').select('*').order('vehicle_id'));
+    if (isAdmin()) {
+      queries.push(state.client.from('vehicle_service_schedules').select('*').order('vehicle_id'));
+      queries.push(state.client.from('vehicle_reservations').select('*').order('starts_at', { ascending: false }).limit(1000));
+    }
     const results = await Promise.all(queries);
     const firstError = results.find((result) => result.error)?.error;
     if (firstError) throw firstError;
     state.reservations = results[0].data || [];
     state.maintenance = results[1].data || [];
     state.services = results[2]?.data || [];
+    state.history = results[3]?.data || [];
     renderVehicleCards(); renderCalendar(); renderLists(); renderMaintenanceList(); renderAdminService();
   }
 
@@ -325,6 +370,9 @@
       ends_at: new Date($('vehicleBookingEnd').value).toISOString(),
       destination: $('vehicleBookingDestination').value.trim(),
       objective: $('vehicleBookingObjective').value.trim(),
+      party_size: Number($('vehicleBookingPartySize').value),
+      itinerary: $('vehicleBookingItinerary').value.trim(),
+      observations: $('vehicleBookingObservations').value.trim() || null,
       additional_drivers: drivers
     };
     if (new Date(payload.starts_at) >= new Date(payload.ends_at)) {
@@ -349,7 +397,8 @@
   async function resolveReservation(id, action) {
     const labels = { reactivate: 'reactivar', reassign: 'reasignar al otro vehículo', cancel: 'cancelar' };
     if (!window.confirm(`¿Deseas ${labels[action]} esta reserva?`)) return;
-    const item = state.reservations.find((entry) => entry.id === id);
+    const item = state.history.find((entry) => entry.id === id)
+      || state.reservations.find((entry) => entry.id === id);
     const other = action === 'reassign' ? state.vehicles.find((vehicle) => String(vehicle.id) !== String(item.vehicle_id)) : null;
     const { error } = await state.client.rpc('admin_resolve_vehicle_reservation', {
       p_id: id, p_action: action, p_vehicle_id: other?.id || null
@@ -394,6 +443,75 @@
     await reloadData();
   }
 
+  async function exportVehicleHistory() {
+    if (!isAdmin()) return;
+    if (!window.XLSX) {
+      setMessage($('vehicleHistoryMessage'), 'No fue posible iniciar la exportación de Excel.');
+      return;
+    }
+    const button = $('exportVehicleHistory');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Preparando Excel…';
+    setMessage($('vehicleHistoryMessage'), '');
+    try {
+      const [reservationsResult, profilesResult] = await Promise.all([
+        state.client.from('vehicle_reservations').select('*').order('starts_at', { ascending: false }).limit(5000),
+        state.client.from('profiles').select('id,full_name,email')
+      ]);
+      if (reservationsResult.error) throw reservationsResult.error;
+      if (profilesResult.error) throw profilesResult.error;
+      const profileMap = new Map((profilesResult.data || []).map((profile) => [profile.id, profile]));
+      const rows = (reservationsResult.data || []).map((item) => {
+        const vehicle = state.vehicles.find((entry) => String(entry.id) === String(item.vehicle_id));
+        const profile = profileMap.get(item.user_id);
+        return {
+          'Estado': statusNames[item.status] || item.status,
+          'Vehículo': vehicle?.display_name || '',
+          'Placa': vehicle?.plate || '',
+          'Profesor responsable': item.responsible_name,
+          'Correo institucional': profile?.email || '',
+          'Salida': new Date(item.starts_at),
+          'Regreso': new Date(item.ends_at),
+          'Cantidad de personas': item.party_size || 1,
+          'Destino': item.destination,
+          'Objetivo de la gira': item.objective,
+          'Itinerario': item.itinerary || '',
+          'Observaciones': item.observations || '',
+          'Chofer adicional 1': item.additional_drivers?.[0] || '',
+          'Chofer adicional 2': item.additional_drivers?.[1] || '',
+          'Fecha de registro': new Date(item.created_at),
+          'Fecha de cancelación': item.cancelled_at ? new Date(item.cancelled_at) : '',
+          'Identificador': item.id
+        };
+      });
+      if (!rows.length) {
+        setMessage($('vehicleHistoryMessage'), 'No hay reservas de vehículos para exportar.');
+        return;
+      }
+      const sheet = window.XLSX.utils.json_to_sheet(rows, { cellDates: true, dateNF: 'yyyy-mm-dd hh:mm' });
+      sheet['!cols'] = [
+        { wch: 24 }, { wch: 25 }, { wch: 12 }, { wch: 30 }, { wch: 34 },
+        { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 28 }, { wch: 38 },
+        { wch: 45 }, { wch: 45 }, { wch: 28 }, { wch: 28 }, { wch: 20 },
+        { wch: 20 }, { wch: 38 }
+      ];
+      sheet['!autofilter'] = { ref: sheet['!ref'] };
+      const workbook = window.XLSX.utils.book_new();
+      window.XLSX.utils.book_append_sheet(workbook, sheet, 'Historial de vehículos');
+      window.XLSX.writeFile(workbook, `historial_reservas_vehiculos_${localDate(new Date())}.xlsx`, {
+        compression: true,
+        cellDates: true
+      });
+      setMessage($('vehicleHistoryMessage'), `Excel generado con ${rows.length} reserva${rows.length === 1 ? '' : 's'}.`, true);
+    } catch (error) {
+      setMessage($('vehicleHistoryMessage'), error.message || 'No fue posible generar el historial.');
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+
   $('showPrivateClassrooms')?.addEventListener('click', () => setModule('classrooms'));
   $('showPrivateVehicles')?.addEventListener('click', () => setModule('vehicles'));
   $('privateVehicleSelect')?.addEventListener('change', (event) => { state.vehicleId = event.target.value; renderCalendar(); });
@@ -406,4 +524,7 @@
   $('maintenanceForm')?.addEventListener('submit', saveMaintenance);
   $('serviceScheduleForm')?.addEventListener('submit', saveService);
   $('serviceVehicle')?.addEventListener('change', loadServiceForm);
+  $('exportVehicleHistory')?.addEventListener('click', exportVehicleHistory);
+  $('closeVehicleDetailDialog')?.addEventListener('click', () => $('vehicleReservationDetailDialog').close());
+  $('acceptVehicleDetailDialog')?.addEventListener('click', () => $('vehicleReservationDetailDialog').close());
 })();

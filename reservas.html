@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="reservas.css?v=18" />
-  <link rel="stylesheet" href="vehiculos.css?v=1" />
+  <link rel="stylesheet" href="vehiculos.css?v=2" />
 </head>
 <body>
   <header class="private-header">
@@ -272,6 +272,20 @@
           </div>
         </section>
 
+        <section class="vehicle-admin-card vehicle-admin-section" aria-labelledby="vehicleHistoryTitle">
+          <div class="section-heading compact-heading">
+            <div>
+              <h3 id="vehicleHistoryTitle">Historial y boletas de salida</h3>
+              <p>Consulta la ficha completa de cualquier reserva o descarga el historial actualizado en Excel.</p>
+            </div>
+            <button class="secondary-button compact-button" id="exportVehicleHistory" type="button">Exportar historial a Excel</button>
+          </div>
+          <div class="vehicle-message" id="vehicleHistoryMessage" hidden></div>
+          <div class="vehicle-reservation-list vehicle-history-list" id="adminVehicleHistoryList">
+            <p class="empty-state">No hay reservas en el historial.</p>
+          </div>
+        </section>
+
         <section class="vehicle-admin-card vehicle-admin-section">
           <h3>Próximas obligaciones administrativas</h3>
           <p class="form-note">Incluye alertas de revisión técnica DEKRA visibles únicamente para administración.</p>
@@ -395,8 +409,11 @@
         <div><label for="vehicleBookingStart">Fecha y hora de salida</label><input id="vehicleBookingStart" type="datetime-local" required /></div>
         <div><label for="vehicleBookingEnd">Fecha y hora de regreso</label><input id="vehicleBookingEnd" type="datetime-local" required /></div>
         <div class="field-wide" id="vehicleResponsibleField" hidden><label for="vehicleBookingResponsible">Reservar a nombre de</label><select id="vehicleBookingResponsible"></select></div>
+        <div><label for="vehicleBookingPartySize">Cantidad de personas</label><input id="vehicleBookingPartySize" type="number" min="1" max="60" step="1" value="1" required /></div>
         <div class="field-wide"><label for="vehicleBookingDestination">Destino</label><input id="vehicleBookingDestination" maxlength="160" required /></div>
         <div class="field-wide"><label for="vehicleBookingObjective">Objetivo de la gira</label><textarea id="vehicleBookingObjective" maxlength="240" required></textarea></div>
+        <div class="field-wide"><label for="vehicleBookingItinerary">Itinerario</label><textarea id="vehicleBookingItinerary" maxlength="600" placeholder="Indica la ruta, lugares y orden de las paradas" required></textarea></div>
+        <div class="field-wide"><label for="vehicleBookingObservations">Observaciones <span class="optional-label">(opcional)</span></label><textarea id="vehicleBookingObservations" maxlength="600" placeholder="Información adicional para la salida"></textarea></div>
         <div><label for="vehicleDriverOne">Chofer adicional 1 (opcional)</label><input id="vehicleDriverOne" maxlength="100" /></div>
         <div><label for="vehicleDriverTwo">Chofer adicional 2 (opcional)</label><input id="vehicleDriverTwo" maxlength="100" /></div>
       </div>
@@ -408,12 +425,26 @@
     </form>
   </dialog>
 
+  <dialog class="vehicle-dialog vehicle-detail-dialog" id="vehicleReservationDetailDialog">
+    <div class="vehicle-detail-content">
+      <div class="dialog-heading">
+        <div><p class="eyebrow">Boleta de salida</p><h2>Detalle de la reserva</h2></div>
+        <button class="dialog-close" id="closeVehicleDetailDialog" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="vehicle-detail-status" id="vehicleDetailStatus"></div>
+      <dl class="vehicle-detail-grid" id="vehicleDetailGrid"></dl>
+      <div class="dialog-actions">
+        <button class="primary-button compact-button" id="acceptVehicleDetailDialog" type="button">Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
   <script src="reservas.js?v=19"></script>
   <script src="vehiculos-imagenes.js?v=1"></script>
-  <script src="vehiculos.js?v=4"></script>
+  <script src="vehiculos.js?v=5"></script>
 </body>
 </html>
