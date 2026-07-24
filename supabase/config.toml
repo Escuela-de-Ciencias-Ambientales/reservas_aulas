@@ -24,3 +24,6 @@ enable_signup = false
 
 [functions.admin-create-user]
 verify_jwt = true
+
+[functions.admin-manage-users]
+verify_jwt = true

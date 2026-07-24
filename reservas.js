@@ -59,13 +59,21 @@
     scheduleEntryCourseName: byId('scheduleEntryCourseName'), scheduleEntryNrc: byId('scheduleEntryNrc'),
     scheduleEntryGroup: byId('scheduleEntryGroup'), scheduleProfessorOptions: byId('scheduleProfessorOptions'),
     closeScheduleDialog: byId('closeScheduleDialog'), cancelScheduleDialog: byId('cancelScheduleDialog'),
-    saveScheduleEntryButton: byId('saveScheduleEntryButton')
+    saveScheduleEntryButton: byId('saveScheduleEntryButton'),
+    managedUserList: byId('managedUserList'), managedUserSearch: byId('managedUserSearch'),
+    managedUserFilter: byId('managedUserFilter'), managedUsersMessage: byId('managedUsersMessage'),
+    refreshManagedUsers: byId('refreshManagedUsers'), userEditorDialog: byId('userEditorDialog'),
+    userEditorForm: byId('userEditorForm'), editedUserId: byId('editedUserId'),
+    editedUserName: byId('editedUserName'), editedUserEmail: byId('editedUserEmail'),
+    editedUserUnit: byId('editedUserUnit'), editedUserAccess: byId('editedUserAccess'),
+    userRoleHelp: byId('userRoleHelp'), userEditorMessage: byId('userEditorMessage'),
+    closeUserEditor: byId('closeUserEditor'), cancelUserEditor: byId('cancelUserEditor')
   };
 
   const state = {
     client: null, session: null, profile: null, cycle: null,
     rooms: roomCodes.map((code) => ({ id: null, code, name: roomDisplayNames[code] || `Aula ${code}` })),
-    fixedOccupancies: [], reservations: [], teachers: []
+    fixedOccupancies: [], reservations: [], teachers: [], managedUsers: []
   };
 
   const isAdmin = () => state.profile?.role === 'admin';
@@ -182,6 +190,9 @@
   function validateSlot({ room, date, start, end }) {
     if (!state.cycle) return { ok: false, message: 'La administración aún no ha configurado el ciclo.' };
     if (!cycleIsOpen()) return { ok: false, message: 'Las reservas están cerradas por la administración.' };
+    if (!isAdmin() && state.profile?.reservations_blocked) {
+      return { ok: false, message: state.profile.reservations_block_reason || 'Tu cuenta no tiene habilitada la creación de reservas.' };
+    }
     if (!room || !date || !start || !end) return { ok: false, message: 'Completa la fecha, el aula y las dos horas.' };
     if (date < state.cycle.reservation_start_date || date > state.cycle.reservation_end_date) return { ok: false, message: `La fecha debe estar entre ${formatDate(state.cycle.reservation_start_date)} y ${formatDate(state.cycle.reservation_end_date)}.` };
     if (date < localDateString()) return { ok: false, message: 'No se permiten reservas en fechas pasadas.' };
@@ -269,11 +280,147 @@
       ? 'Selecciona una semana y un aula. Puedes reservar espacios libres y gestionar directamente la ocupación académica.'
       : 'Selecciona una semana y un aula. Pulsa “Reservar” directamente en el espacio que necesitas.';
     document.querySelectorAll('.superadmin-only').forEach((element) => { element.hidden = !isSuperadmin(); });
-    renderCycle(); renderMyReservations(); renderAdminReservations();
+    renderCycle();
+    if (!isAdmin() && state.profile.reservations_blocked) {
+      elements.cycleDescription.textContent = state.profile.reservations_block_reason || 'La administración bloqueó temporalmente la creación de reservas para esta cuenta.';
+      elements.saveBookingButton.disabled = true;
+    }
+    renderMyReservations(); renderAdminReservations();
+  }
+  function accessType(user) {
+    if (user.role !== 'admin') return 'teacher';
+    return user.admin_scope === 'superadmin' ? 'superadmin' : 'reservation_admin';
+  }
+  function accessTypeName(user) {
+    return accessType(user) === 'superadmin' ? 'Superadministrador'
+      : accessType(user) === 'reservation_admin' ? 'Administrador de reservas'
+        : 'Docente';
+  }
+  function canEditManagedUser(user) {
+    return isSuperadmin() || user.role === 'teacher' || user.id === state.profile?.id;
+  }
+  function canManageUserAccess(user) {
+    return isSuperadmin() || user.role === 'teacher';
+  }
+  function renderManagedUsers() {
+    if (!isAdmin() || !elements.managedUserList) return;
+    const search = elements.managedUserSearch.value.trim().toLocaleLowerCase('es');
+    const filter = elements.managedUserFilter.value;
+    const users = state.managedUsers.filter((user) => {
+      const matchesSearch = !search || `${user.full_name} ${user.email} ${user.unit || ''}`.toLocaleLowerCase('es').includes(search);
+      const matchesFilter = filter === 'all'
+        || (filter === 'active' && user.active && !user.reservations_blocked)
+        || (filter === 'blocked' && user.active && user.reservations_blocked)
+        || (filter === 'inactive' && !user.active);
+      return matchesSearch && matchesFilter;
+    });
+    elements.managedUserList.innerHTML = users.length ? users.map((user) => {
+      const editable = canEditManagedUser(user);
+      const manageable = canManageUserAccess(user);
+      const self = user.id === state.profile?.id;
+      const badges = [
+        `<span class="user-badge${user.role === 'admin' ? ' is-admin' : ''}">${escapeHtml(accessTypeName(user))}</span>`,
+        `<span class="user-badge">${escapeHtml(user.unit || 'Unidad pendiente')}</span>`,
+        !user.active ? '<span class="user-badge is-inactive">Acceso eliminado</span>' : '',
+        user.active && user.reservations_blocked ? '<span class="user-badge is-blocked">Reservas bloqueadas</span>' : ''
+      ].join('');
+      const editButton = editable ? `<button class="secondary-button" type="button" data-edit-user="${user.id}">Editar</button>` : '';
+      const blockButton = manageable && user.active && !self
+        ? `<button class="secondary-button" type="button" data-user-action="${user.reservations_blocked ? 'unblock' : 'block'}" data-user-id="${user.id}">${user.reservations_blocked ? 'Habilitar reservas' : 'Bloquear reservas'}</button>`
+        : '';
+      const activeButton = manageable && !self
+        ? `<button class="${user.active ? 'danger-button' : 'secondary-button'}" type="button" data-user-action="${user.active ? 'deactivate' : 'reactivate'}" data-user-id="${user.id}">${user.active ? 'Eliminar acceso' : 'Reactivar acceso'}</button>`
+        : '';
+      return `<article class="managed-user-item${!user.active ? ' is-inactive' : ''}${user.reservations_blocked ? ' is-blocked' : ''}">
+        <div class="managed-user-main">
+          <h4>${escapeHtml(user.full_name)}${self ? ' · Tú' : ''}</h4>
+          <p>${escapeHtml(user.email)}</p>
+          <div class="managed-user-badges">${badges}</div>
+          ${user.reservations_blocked && user.reservations_block_reason ? `<p><strong>Motivo:</strong> ${escapeHtml(user.reservations_block_reason)}</p>` : ''}
+        </div>
+        <div class="managed-user-actions">${editButton}${blockButton}${activeButton}${editable || manageable ? '' : '<span class="user-badge">Cuenta protegida</span>'}</div>
+      </article>`;
+    }).join('') : '<p class="empty-state">No hay usuarios que coincidan con los filtros.</p>';
+  }
+  function openUserEditor(userId) {
+    const user = state.managedUsers.find((item) => item.id === userId);
+    if (!user || !canEditManagedUser(user)) return;
+    elements.editedUserId.value = user.id;
+    elements.editedUserName.value = user.full_name;
+    elements.editedUserEmail.value = user.email;
+    elements.editedUserUnit.value = user.unit || 'Docencia';
+    elements.editedUserAccess.value = accessType(user);
+    elements.editedUserAccess.disabled = !isSuperadmin() || user.id === state.profile?.id;
+    elements.userRoleHelp.hidden = isSuperadmin() && user.id !== state.profile?.id;
+    elements.userEditorMessage.hidden = true;
+    elements.userEditorMessage.textContent = '';
+    elements.userEditorDialog.showModal();
+  }
+  function closeUserEditor() {
+    elements.userEditorForm.reset();
+    elements.userEditorDialog.close();
+  }
+  async function invokeUserManagement(body) {
+    const { data, error } = await state.client.functions.invoke('admin-manage-users', { body });
+    if (error) {
+      let detail = null;
+      try { detail = await error.context?.json(); } catch {}
+      throw new Error(detail?.error || error.message);
+    }
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible actualizar el usuario.');
+    return data;
+  }
+  async function saveManagedUser(event) {
+    event.preventDefault();
+    const button = elements.userEditorForm.querySelector('button[type="submit"]');
+    setBusy(button, true, 'Guardando…');
+    elements.userEditorMessage.hidden = true;
+    try {
+      const editedId = elements.editedUserId.value;
+      const data = await invokeUserManagement({
+        action: 'update',
+        userId: editedId,
+        fullName: elements.editedUserName.value.trim(),
+        email: elements.editedUserEmail.value.trim().toLowerCase(),
+        unit: elements.editedUserUnit.value,
+        accessType: elements.editedUserAccess.value
+      });
+      closeUserEditor();
+      if (editedId === state.profile?.id) await loadProfile();
+      await loadManagedUsers();
+      await loadTeachers();
+      showMessage(data.message || 'Usuario actualizado.');
+    } catch (error) {
+      elements.userEditorMessage.textContent = error.message;
+      elements.userEditorMessage.classList.add('is-error');
+      elements.userEditorMessage.hidden = false;
+    } finally { setBusy(button, false); }
+  }
+  async function manageUserAccess(userId, action) {
+    const user = state.managedUsers.find((item) => item.id === userId);
+    if (!user) return;
+    let reason = '';
+    if (action === 'block') {
+      reason = window.prompt(`Indica el motivo para bloquear las reservas de ${user.full_name}:`) || '';
+      if (!reason.trim()) return;
+    } else {
+      const messages = {
+        unblock: `¿Deseas habilitar nuevamente las reservas de ${user.full_name}?`,
+        deactivate: `¿Deseas eliminar el acceso de ${user.full_name}? Su historial institucional se conservará.`,
+        reactivate: `¿Deseas reactivar el acceso de ${user.full_name}?`
+      };
+      if (!window.confirm(messages[action])) return;
+    }
+    try {
+      const data = await invokeUserManagement({ action, userId, reason: reason.trim() });
+      await loadManagedUsers();
+      await loadTeachers();
+      showMessage(data.message || 'Usuario actualizado.');
+    } catch (error) { showMessage(error.message, 'error'); }
   }
   function populateTeacherSelect() {
     const options = state.teachers.length
-      ? state.teachers.map((teacher) => `<option value="${escapeHtml(teacher.id)}">${escapeHtml(teacher.full_name)}</option>`).join('')
+      ? state.teachers.map((teacher) => `<option value="${escapeHtml(teacher.id)}">${escapeHtml(teacher.full_name)}${teacher.reservations_blocked ? ' · Reservas bloqueadas' : ''}</option>`).join('')
       : '<option value="">No hay docentes activos</option>';
     elements.bookingProfessor.innerHTML = options;
     elements.dialogBookingProfessor.innerHTML = options;
@@ -438,10 +585,19 @@
   }
   async function loadTeachers() {
     if (!isAdmin()) { state.teachers = []; populateTeacherSelect(); return; }
-    const { data, error } = await state.client.from('profiles').select('id,full_name').eq('role', 'teacher').eq('active', true).order('full_name');
+    const { data, error } = await state.client.from('profiles').select('id,full_name,reservations_blocked,reservations_block_reason').eq('role', 'teacher').eq('active', true).order('full_name');
     if (error) throw error;
     state.teachers = data || [];
     populateTeacherSelect();
+  }
+  async function loadManagedUsers() {
+    if (!isAdmin()) { state.managedUsers = []; return; }
+    const { data, error } = await state.client.from('profiles')
+      .select('id,full_name,email,unit,role,admin_scope,active,reservations_blocked,reservations_block_reason,created_at')
+      .order('full_name');
+    if (error) throw error;
+    state.managedUsers = data || [];
+    renderManagedUsers();
   }
   async function loadReservations() {
     if (!state.cycle) { state.reservations = []; return; }
@@ -450,7 +606,7 @@
   }
   async function loadProfile() {
     if (!state.session) { state.profile = null; renderSession(); return; }
-    const { data, error } = await state.client.from('profiles').select('id,full_name,email,role,admin_scope,active').eq('id', state.session.user.id).single();
+    const { data, error } = await state.client.from('profiles').select('id,full_name,email,unit,role,admin_scope,active,reservations_blocked,reservations_block_reason').eq('id', state.session.user.id).single();
     if (error) throw error;
     if (!data.active) { await state.client.auth.signOut(); throw new Error('Esta cuenta está desactivada. Contacta a la administración.'); }
     state.profile = data; renderSession();
@@ -467,7 +623,7 @@
     elements.visitTodayCount.textContent = Number(stats?.today_count || 0).toLocaleString('es-CR');
     elements.visitTotalCount.textContent = Number(stats?.total_count || 0).toLocaleString('es-CR');
   }
-  async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadReservations(); await loadVisitStats(); }
+  async function reloadAll() { await loadCycle(); await loadFixedOccupancies(); await loadTeachers(); await loadManagedUsers(); await loadReservations(); await loadVisitStats(); }
   async function signOut() { clearMessage(); await state.client.auth.signOut(); window.location.replace('ingreso.html?v=7'); }
 
   async function saveReservation(event) {
@@ -476,6 +632,11 @@
     const validation = validateSlot(slot); if (!validation.ok) { showMessage(validation.message, 'error'); return; }
     const room = state.rooms.find((item) => item.code === slot.room); if (!room?.id) { showMessage('No se encontró el aula seleccionada.', 'error'); return; }
     if (isAdmin() && !elements.bookingProfessor.value) { showMessage('Selecciona el profesor para quien se realizará la reserva.', 'error'); return; }
+    const selectedTeacher = isAdmin() ? state.teachers.find((item) => item.id === elements.bookingProfessor.value) : null;
+    if (selectedTeacher?.reservations_blocked) {
+      showMessage(selectedTeacher.reservations_block_reason || 'La cuenta seleccionada no tiene habilitada la creación de reservas.', 'error');
+      return;
+    }
     setBusy(elements.saveBookingButton, true, 'Guardando…');
     try {
       const request = isAdmin()
@@ -519,6 +680,12 @@
     }
     if (isAdmin() && !elements.dialogBookingProfessor.value) {
       elements.dialogAvailabilityCheck.textContent = 'Selecciona el profesor para quien se realizará la reserva.';
+      elements.dialogAvailabilityCheck.classList.add('is-conflict');
+      return;
+    }
+    const selectedTeacher = isAdmin() ? state.teachers.find((item) => item.id === elements.dialogBookingProfessor.value) : null;
+    if (selectedTeacher?.reservations_blocked) {
+      elements.dialogAvailabilityCheck.textContent = selectedTeacher.reservations_block_reason || 'La cuenta seleccionada no tiene habilitada la creación de reservas.';
       elements.dialogAvailabilityCheck.classList.add('is-conflict');
       return;
     }
@@ -733,6 +900,12 @@
     elements.openPasswordDialog.addEventListener('click', openPasswordEditor);
     elements.closePasswordDialog.addEventListener('click', closePasswordEditor);
     elements.cancelPasswordDialog.addEventListener('click', closePasswordEditor);
+    elements.userEditorForm.addEventListener('submit', saveManagedUser);
+    elements.closeUserEditor.addEventListener('click', closeUserEditor);
+    elements.cancelUserEditor.addEventListener('click', closeUserEditor);
+    elements.managedUserSearch.addEventListener('input', renderManagedUsers);
+    elements.managedUserFilter.addEventListener('change', renderManagedUsers);
+    elements.refreshManagedUsers.addEventListener('click', async () => { await loadManagedUsers(); showMessage('Lista de usuarios actualizada.'); });
     elements.editorRoom.addEventListener('change', renderWeeklyEditor);
     elements.editorWeek.addEventListener('change', renderWeeklyEditor);
     elements.bookingDialogForm.addEventListener('submit', saveDialogReservation);
@@ -764,6 +937,10 @@
       if (editOccupancyButton) openScheduleDialog(state.fixedOccupancies.find((item) => String(item.id) === editOccupancyButton.dataset.editOccupancy));
       const deleteOccupancyButton = event.target.closest('[data-delete-occupancy]');
       if (deleteOccupancyButton) deleteScheduleEntry(deleteOccupancyButton.dataset.deleteOccupancy);
+      const editUserButton = event.target.closest('[data-edit-user]');
+      if (editUserButton) openUserEditor(editUserButton.dataset.editUser);
+      const userActionButton = event.target.closest('[data-user-action]');
+      if (userActionButton) manageUserAccess(userActionButton.dataset.userId, userActionButton.dataset.userAction);
     });
   }
 

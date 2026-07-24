@@ -46,8 +46,9 @@
 
   function updateVehicleConnectionStatus() {
     const blockedByPhoto = !isAdmin() && pendingPhotosFor().length > 0;
-    $('vehicleConnectionStatus').textContent = blockedByPhoto ? 'Bitácora pendiente' : reservationsOpen() ? 'Reservas abiertas' : 'Reservas cerradas';
-    $('vehicleConnectionStatus').classList.toggle('is-offline', !reservationsOpen() || blockedByPhoto);
+    const blockedByAdmin = !isAdmin() && state.profile?.reservations_blocked;
+    $('vehicleConnectionStatus').textContent = blockedByAdmin ? 'Reservas bloqueadas' : blockedByPhoto ? 'Bitácora pendiente' : reservationsOpen() ? 'Reservas abiertas' : 'Reservas cerradas';
+    $('vehicleConnectionStatus').classList.toggle('is-offline', !reservationsOpen() || blockedByPhoto || blockedByAdmin);
   }
 
   function setModule(module) {
@@ -78,7 +79,7 @@
     $('privateVehicleSelect').value = state.vehicleId || '';
     $('vehicleBookingVehicle').value = state.vehicleId || '';
     const teacherOptions = state.teachers.map((teacher) =>
-      `<option value="${teacher.id}">${escapeHtml(teacher.full_name)}${teacher.unit ? ` · ${escapeHtml(teacher.unit)}` : ' · Unidad pendiente'}</option>`
+      `<option value="${teacher.id}">${escapeHtml(teacher.full_name)}${teacher.unit ? ` · ${escapeHtml(teacher.unit)}` : ' · Unidad pendiente'}${teacher.reservations_blocked ? ' · Reservas bloqueadas' : ''}</option>`
     ).join('');
     $('vehicleBookingResponsible').innerHTML = teacherOptions;
     $('vehicleResponsibleField').hidden = !isAdmin();
@@ -136,6 +137,7 @@
   function canReserveDay(day, events) {
     const end = new Date(day); end.setHours(23, 59, 59, 999);
     return reservationsOpen()
+      && (isAdmin() || !state.profile?.reservations_blocked)
       && (isAdmin() || pendingPhotosFor().length === 0)
       && end >= new Date()
       && !events.some((event) => event.event_type === 'maintenance');
@@ -179,6 +181,10 @@
     }
     if (!isAdmin() && pendingPhotosFor().length) {
       window.alert('Debes cargar la fotografía de bitácora de tu última gira antes de realizar otra reserva.');
+      return;
+    }
+    if (!isAdmin() && state.profile?.reservations_blocked) {
+      window.alert(state.profile.reservations_block_reason || 'Tu cuenta no tiene habilitada la creación de reservas.');
       return;
     }
     const start = item ? new Date(item.starts_at) : new Date(`${date}T08:00:00`);
@@ -412,7 +418,7 @@
     if (vehicleError) throw vehicleError;
     state.vehicles = vehicleData || []; state.cycle = cycleData || null;
     if (isAdmin()) {
-      const { data } = await state.client.from('profiles').select('id,full_name,email,unit,active').eq('role', 'teacher').order('full_name');
+      const { data } = await state.client.from('profiles').select('id,full_name,email,unit,active,reservations_blocked,reservations_block_reason').eq('role', 'teacher').order('full_name');
       state.profiles = data || [];
       state.teachers = state.profiles.filter((profile) => profile.active);
     }
@@ -460,7 +466,7 @@
       const { data: { session } } = await state.client.auth.getSession();
       if (!session) { window.location.replace('ingreso.html?v=7'); return; }
       state.session = session;
-      const { data: profile, error } = await state.client.from('profiles').select('id,full_name,email,unit,role,admin_scope,active').eq('id', session.user.id).single();
+      const { data: profile, error } = await state.client.from('profiles').select('id,full_name,email,unit,role,admin_scope,active,reservations_blocked,reservations_block_reason').eq('id', session.user.id).single();
       if (error) throw error;
       state.profile = profile;
       $('vehicleAdminPanel').hidden = !isAdmin();
@@ -481,6 +487,10 @@
     if (!userId) { setMessage($('vehicleBookingMessage'), 'Selecciona el profesor responsable.'); return; }
     const responsible = selectedResponsibleProfile();
     const selectedUnit = $('vehicleBookingUnit').value;
+    if (responsible?.reservations_blocked) {
+      setMessage($('vehicleBookingMessage'), responsible.reservations_block_reason || 'La cuenta responsable no tiene habilitada la creación de reservas.');
+      return;
+    }
     if (!responsible?.unit && !isAdmin()) {
       if (!['Docencia', 'Administrativo', 'LAA', 'PROCAME'].includes(selectedUnit)) {
         setMessage($('vehicleBookingMessage'), 'Selecciona tu unidad institucional.'); return;
