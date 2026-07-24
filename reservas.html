@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="reservas.css?v=20" />
+  <link rel="stylesheet" href="reservas.css?v=21" />
   <link rel="stylesheet" href="vehiculos.css?v=2" />
 </head>
 <body>
@@ -106,7 +106,10 @@
     </section>
 
     <section class="admin-panel panel" id="adminPanel" aria-labelledby="adminTitle" hidden>
-      <div class="section-heading"><div><p class="eyebrow" id="adminAccessLabel">Acceso administrativo</p><h2 id="adminTitle">Administración de reservas</h2></div></div>
+      <div class="section-heading">
+        <div><p class="eyebrow" id="adminAccessLabel">Acceso administrativo</p><h2 id="adminTitle">Administración de reservas</h2></div>
+        <a class="secondary-button compact-button" href="usuarios.html">Administrar usuarios</a>
+      </div>
       <section class="visit-counter-panel superadmin-only" id="visitCounterPanel" hidden aria-labelledby="visitCounterTitle">
         <div>
           <p class="eyebrow">Actividad de la página pública</p>
@@ -170,22 +173,6 @@
           <button class="primary-button" id="uploadUsersButton" type="button">Procesar docentes</button>
         </section>
       </div>
-      <section class="user-management-card" aria-labelledby="userManagementTitle">
-        <div class="section-heading compact-heading">
-          <div>
-            <p class="eyebrow">Control de accesos</p>
-            <h3 id="userManagementTitle">Administrar usuarios registrados</h3>
-            <p>Edita datos, bloquea nuevas reservas o elimina el acceso conservando el historial institucional.</p>
-          </div>
-          <button class="secondary-button compact-button" id="refreshManagedUsers" type="button">Actualizar</button>
-        </div>
-        <div class="user-management-filters">
-          <div><label for="managedUserSearch">Buscar usuario</label><input id="managedUserSearch" type="search" placeholder="Nombre o correo electrónico" /></div>
-          <div><label for="managedUserFilter">Estado</label><select id="managedUserFilter"><option value="all">Todos</option><option value="active">Activos</option><option value="blocked">Reservas bloqueadas</option><option value="inactive">Acceso eliminado</option></select></div>
-        </div>
-        <div class="form-message" id="managedUsersMessage" role="status" aria-live="polite" hidden></div>
-        <div class="managed-user-list" id="managedUserList"><p class="empty-state">Cargando usuarios…</p></div>
-      </section>
       <section class="admin-bookings">
         <h3>Reservas activas</h3>
         <div class="booking-list" id="adminBookingsList"><p class="empty-state">No hay reservas activas.</p></div>
@@ -340,28 +327,6 @@
       </section>
     </section>
   </main>
-
-  <dialog class="schedule-dialog user-editor-dialog" id="userEditorDialog">
-    <form id="userEditorForm" method="dialog">
-      <div class="dialog-heading">
-        <div><p class="eyebrow">Administración de usuarios</p><h2>Editar cuenta</h2></div>
-        <button class="dialog-close" id="closeUserEditor" type="button" aria-label="Cerrar">×</button>
-      </div>
-      <input id="editedUserId" type="hidden" />
-      <div class="form-message" id="userEditorMessage" role="status" aria-live="polite" hidden></div>
-      <div class="user-editor-grid">
-        <div class="field-wide"><label for="editedUserName">Nombre completo</label><input id="editedUserName" maxlength="100" required /></div>
-        <div class="field-wide"><label for="editedUserEmail">Correo electrónico</label><input id="editedUserEmail" type="email" maxlength="140" required /></div>
-        <div><label for="editedUserUnit">Unidad institucional</label><select id="editedUserUnit" required><option value="Docencia">Docencia</option><option value="Administrativo">Administrativo</option><option value="LAA">LAA</option><option value="PROCAME">PROCAME</option></select></div>
-        <div><label for="editedUserAccess">Tipo de acceso</label><select id="editedUserAccess"><option value="teacher">Docente</option><option value="reservation_admin">Administrador de reservas</option><option value="superadmin">Superadministrador</option></select></div>
-      </div>
-      <p class="schedule-dialog-help" id="userRoleHelp">Solo el superadministrador puede cambiar roles de acceso.</p>
-      <div class="dialog-actions">
-        <button class="secondary-button" id="cancelUserEditor" type="button">Cancelar</button>
-        <button class="primary-button compact-button" id="saveEditedUser" type="submit">Guardar cambios</button>
-      </div>
-    </form>
-  </dialog>
 
   <dialog class="schedule-dialog password-dialog" id="passwordDialog">
     <form id="changePasswordForm" method="dialog">
@@ -539,7 +504,7 @@
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="config.js?v=5"></script>
   <script src="password-toggle.js?v=2"></script>
-  <script src="reservas.js?v=21"></script>
+  <script src="reservas.js?v=22"></script>
   <script src="vehiculos-imagenes.js?v=1"></script>
   <script src="vehiculos.js?v=8"></script>
 </body>

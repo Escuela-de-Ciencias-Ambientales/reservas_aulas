@@ -382,41 +382,6 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
 .file-summary { min-height:42px; margin:14px 0 0; padding:11px 12px; border-radius:10px; color:var(--reserve-muted); background:#f3f6f5; font-size:13px; line-height:1.45; }
 .full-button { width:100%; }
 .admin-bookings { margin-top:20px; }
-.user-management-card {
-  margin-top:20px;
-  padding:22px;
-  border:1px solid var(--reserve-line);
-  border-radius:14px;
-  background:#fbfdfc;
-}
-.user-management-card .compact-heading p:not(.eyebrow) { margin:7px 0 0; color:var(--reserve-muted); line-height:1.45; }
-.user-management-filters { display:grid; grid-template-columns:minmax(240px,1fr) minmax(180px,.42fr); gap:14px; margin:20px 0; }
-.user-management-filters label { margin-top:0; }
-.managed-user-list { display:grid; gap:12px; }
-.managed-user-item {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:center;
-  gap:16px;
-  padding:15px 16px;
-  border:1px solid var(--reserve-line);
-  border-radius:12px;
-  background:#fff;
-}
-.managed-user-item.is-inactive { background:#f5f6f6; opacity:.78; }
-.managed-user-item.is-blocked { border-color:#e4b8bc; background:#fff9f9; }
-.managed-user-main { min-width:0; }
-.managed-user-main h4 { margin:0; color:var(--reserve-ink); font-size:17px; }
-.managed-user-main p { margin:4px 0 0; color:var(--reserve-muted); overflow-wrap:anywhere; }
-.managed-user-badges { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
-.user-badge { display:inline-flex; align-items:center; min-height:25px; padding:4px 9px; border-radius:999px; color:#315047; background:#edf3f1; font-size:11px; font-weight:800; }
-.user-badge.is-admin { color:#075c40; background:#e5f5ee; }
-.user-badge.is-blocked,.user-badge.is-inactive { color:#9c1721; background:#fff0f1; }
-.managed-user-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
-.managed-user-actions button { width:auto; min-height:36px; margin:0; padding:7px 11px; }
-.user-editor-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 18px; }
-.user-editor-grid .field-wide { grid-column:1 / -1; }
-.user-editor-dialog { width:min(680px,calc(100% - 28px)); }
 
 .schedule-browser { padding:26px; }
 .schedule-browser .compact-heading > div:first-child { max-width:650px; }
@@ -674,11 +639,6 @@ body { min-height:100vh; margin:0; color:var(--reserve-ink); background:#f4f7f6;
   .reservation-portal,
   .schedule-browser,
   .admin-panel { padding: 18px; border-radius: 16px; }
-  .user-management-card { padding:18px; }
-  .user-management-filters,.user-editor-grid { grid-template-columns:1fr; }
-  .user-editor-grid .field-wide { grid-column:auto; }
-  .managed-user-item { grid-template-columns:1fr; }
-  .managed-user-actions { justify-content:flex-start; }
   .portal-heading,
   .section-heading,
   .account-strip,
